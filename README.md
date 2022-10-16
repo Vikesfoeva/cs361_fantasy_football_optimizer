@@ -1,5 +1,11 @@
 # Getting Started with Create React App
 
+Huge shoutout to this link for helping me get the React + node App up and running
+https://medium.com/@ajaysikdar/deploy-reactjs-app-with-nodejs-server-on-google-app-engine-f862c81457de
+
+Draftkings API Documentation
+https://seandrummy.medium.com/unofficial-documentation-for-the-draft-kings-api-8830f8e8c7fc
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts

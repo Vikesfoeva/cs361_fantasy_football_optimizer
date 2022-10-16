@@ -1,98 +1,28 @@
+import React from 'react'
+import WeekSelector from './components/weekSelect';
+import { Typography } from '@mui/material';
 
-import logo from './logo.svg';
-import './App.css';
-import React, { useState, useEffect, useReducer } from 'react'
-import axios from 'axios'
-
-const checkHealthReducer = (state, action) => {
-    switch (action.type) {
-        case "INIT":
-            return {
-                ...state,
-                isLoading: true,
-                isError: false
-            }
-        case "SUCCESS":
-            return {
-                ...state,
-                isLoading: false,
-                isError: false,
-                data: action.payload
-            }
-        case "FAILURE":
-            return {
-                ...state,
-                isLoading: false,
-                isError: true
-            }
-        default:
-            throw new Error()
-    }
-}
+const baseUrl = window.location.href;
 
 function App() {
-  const [checkHealth, setCheckHealth] = useState(false)
-    const [state, dispatch] = useReducer(checkHealthReducer, {
-        isLoading: false,
-        isError: false,
-        data: {"status":""}
-    })
-
-    useEffect(() => {
-        const callCheckHealth = async () => {
-            dispatch({
-                type: "INIT"
-            })
-            try {
-                const url = "https://lenzb-cs361.ue.r.appspot.com/api/checkHealth";
-                const headers = {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                }
-                const res = await axios(url)
-                console.log("Health status from backend---",res.data)
-                dispatch({
-                    type: 'SUCCESS',
-                    payload: res.data
-                })
-                setCheckHealth(false)
-            }
-            catch (err) {
-                dispatch({
-                    type: 'FAILURE'
-                })
-            }
-
-        }
-        if (checkHealth) {
-            callCheckHealth()
-        }
-
-    }, [checkHealth])
-
-  const handleCheckHealthButton = () =>{
-    setCheckHealth(true)
-  }
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <button onClick={handleCheckHealthButton}>Check Health</button>
-        <div>Health status : {state.data.status}</div>
-      </header>
-    </div>
+    <React.Fragment>
+      <React.Fragment>
+        <Typography variant='h1'>Fantasy Football Roster Optimization Tool</Typography>
+        <WeekSelector />
+        <button onClick={fetchDataTest}>DK Test</button>
+      </React.Fragment>
+    </React.Fragment>
   );
 }
+
+const fetchDataTest = async () => {
+  const url = baseUrl + "api/dkTest";
+  fetch(url)
+  .then(res => res.json())
+  .then((out) => {
+    console.log(out);
+  });
+};
 
 export default App;
