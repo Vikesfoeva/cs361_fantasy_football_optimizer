@@ -23,7 +23,7 @@ export default function WeekSelector() {
                 onChange={handleChange}
             >
             {weekOptions.map((week) => 
-                <MenuItem value={week} key={week}>{'Week' + week}</MenuItem>
+                <MenuItem value={week} key={week}>{'Week ' + week}</MenuItem>
             )}
             </Select>
         </FormControl>

@@ -8,8 +8,8 @@ export default function GameSelector() {
         'Colts @ Titans', 'Jets @ Broncos', 'Texans @ Raiders'
     ];
 
-    const [age, setAge] = React.useState('');
-    const handleChange = (event) => {
+    const [game, setAge] = React.useState('');
+    const handleGameChange = (event) => {
         setAge(event.target.value);
     };
 
@@ -20,8 +20,8 @@ export default function GameSelector() {
                 labelId="NFLSelectGame"
                 id="nflgameselect"
                 label="NFLGame"
-                value={age}
-                onChange={handleChange}
+                value={game}
+                onChange={handleGameChange}
             >
             {gameOptions.map((game) => 
                 <MenuItem value={game} key={game}>{game}</MenuItem>
