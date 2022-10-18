@@ -23,8 +23,8 @@ export default function GameSelector() {
                 value={age}
                 onChange={handleChange}
             >
-            {gameOptions.map((week) => 
-                <MenuItem value={week} key={week}>{'Week' + week}</MenuItem>
+            {gameOptions.map((game) => 
+                <MenuItem value={game} key={game}>{game}</MenuItem>
             )}
             </Select>
         </FormControl>
