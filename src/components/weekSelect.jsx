@@ -14,10 +14,10 @@ export default function WeekSelector() {
 
     return (
         <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-            <InputLabel id="NFL-Select-Week">NFL Week</InputLabel>
+            <InputLabel id="NFLSelectWeek">NFL Week</InputLabel>
             <Select
-                labelId="NFL-Select-Week"
-                id="nfl-simple-select"
+                labelId="NFLSelectWeek"
+                id="nflSimpleSelect"
                 label="NFLWeek"
                 value={age}
                 onChange={handleChange}

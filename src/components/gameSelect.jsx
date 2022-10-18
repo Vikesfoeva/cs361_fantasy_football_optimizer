@@ -15,10 +15,10 @@ export default function GameSelector() {
 
     return (
         <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
-            <InputLabel id="NFL-Game-Week">NFL Game</InputLabel>
+            <InputLabel id="GameDropdown">NFL Game</InputLabel>
             <Select
-                labelId="NFL-Select-Game"
-                id="nfl-game-select"
+                labelId="NFLSelectGame"
+                id="nflgameselect"
                 label="NFLGame"
                 value={age}
                 onChange={handleChange}
