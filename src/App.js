@@ -29,9 +29,11 @@ function App() {
     <React.Fragment>
       <React.Fragment>
         <Typography variant='h2'>Fantasy Football Roster Optimization Tool</Typography>
+        
         <WeekSelector />
         <GameSelector />
         <Button variant='contained' color='success' onClick={learnMore}>Learn More <HelpIcon /></Button>
+
         <Grid container spacing={2}>
           <Grid xs={4.5}>
             <AllPlayersTable />
