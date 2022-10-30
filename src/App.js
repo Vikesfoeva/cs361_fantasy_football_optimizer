@@ -14,6 +14,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
+import HelpIcon from '@mui/icons-material/Help';
 
 const baseUrl = window.location.href;
 const Item = styled(Paper)(({ theme }) => ({
@@ -30,7 +31,7 @@ function App() {
         <Typography variant='h2'>Fantasy Football Roster Optimization Tool</Typography>
         <WeekSelector />
         <GameSelector />
-
+        <Button variant='contained' color='success' onClick={learnMore}>Learn More <HelpIcon /></Button>
         <Grid container spacing={2}>
           <Grid xs={4.5}>
             <AllPlayersTable />
@@ -65,7 +66,7 @@ function App() {
             <ButtonGrid />
           </Grid>
         </Grid>
-        <Button variant='contained' coloor='success' onClick={fetchDataTest}>Server Connection Test - View Network</Button>
+        <Button variant='contained' color='success' onClick={fetchDataTest}>Server Connection Test - View Network</Button>
       </React.Fragment>
     </React.Fragment>
   );
@@ -78,6 +79,15 @@ const fetchDataTest = async () => {
   .then((out) => {
     console.log(out);
   });
+};
+
+const learnMore = async () => {
+  alert('This website allows a user to optimize their fantasy football line ups by aggregating ' + 
+  'data, helping to run optimizations, and letting them visualize different outcomes.\n\n' + 
+  'The user can select which week of games they want to choose from, which game that week ' + 
+  'and then use the optimization, and visualization tools on the right to help them arrive at the' + 
+  'right decisions.\n\n' + 
+  'Users will be able be able to flexibly, change, undo, and export their lineups.');
 };
 
 export default App;
