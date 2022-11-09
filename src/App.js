@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react';
 import WeekSelector from './components/weekSelect';
 import { Icon, Typography } from '@mui/material';
 import GameSelector from './components/gameSelect';
@@ -16,6 +16,80 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
 import HelpIcon from '@mui/icons-material/Help';
 
+class App extends Component {
+  state = { 
+    games: ['hi', 'hello']
+  } 
+  constructor() {
+    super();
+  }
+
+  componentDidMount() {}
+
+  render() { 
+    return (
+      <React.Fragment>
+        <React.Fragment>
+          <Typography variant='h2'>Fantasy Football Roster Optimization Tool</Typography>
+          
+          <WeekSelector />
+          <GameSelector 
+            gamesAvail={this.state.games}
+          />
+          <Button variant='contained' color='success' onClick={learnMore}>Learn More <HelpIcon /></Button>
+  
+          <Grid container spacing={2}>
+            <Grid xs={4.5}>
+              <AllPlayersTable />
+            </Grid>
+            <Grid xs={1.5}>
+              <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
+              <Grid container spacing={2}>
+                <Grid xs={5}>
+                  <ClearIcon />
+                </Grid>
+                <Grid xs={5}>
+                  <Typography>Remove</Typography>
+                </Grid>
+  
+                <Grid xs={5}>
+                  <LockIcon />
+                </Grid>
+                <Grid xs={5}>
+                  <Typography>Locked</Typography>
+                </Grid>
+  
+                <Grid xs={5}>
+                  <LockOpenIcon />
+                </Grid>
+                <Grid xs={5}>
+                  <Typography>Unlocked</Typography>
+                </Grid>
+              </Grid>           
+            </Grid>
+            <Grid xs={4.5}>
+              <BasicTabs />
+              <ButtonGrid />
+            </Grid>
+          </Grid>
+          <Button variant='contained' color='success' onClick={this.handleFetchContests}>Get Single Contest Data</Button>
+        </React.Fragment>
+      </React.Fragment>
+    );
+  }
+  handleFetchContests = () => {
+    const url = window.location.href + "api/Contests";
+    fetch(url)
+    .then(res => res.json())
+    .then((out) => {
+      console.log(out);
+    });
+    const games = this.state.games;
+    games.push('Hello more!')
+    this.setState({ games });
+  }; 
+}
+
 const baseUrl = window.location.href;
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -24,65 +98,6 @@ const Item = styled(Paper)(({ theme }) => ({
   textAlign: 'center',
   color: theme.palette.text.secondary,
 }));
-function App() {
-  return (
-    <React.Fragment>
-      <React.Fragment>
-        <Typography variant='h2'>Fantasy Football Roster Optimization Tool</Typography>
-        
-        <WeekSelector />
-        <GameSelector />
-        <Button variant='contained' color='success' onClick={learnMore}>Learn More <HelpIcon /></Button>
-
-        <Grid container spacing={2}>
-          <Grid xs={4.5}>
-            <AllPlayersTable />
-          </Grid>
-          <Grid xs={1.5}>
-            <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
-            <Grid container spacing={2}>
-              <Grid xs={5}>
-                <ClearIcon />
-              </Grid>
-              <Grid xs={5}>
-                <Typography>Remove</Typography>
-              </Grid>
-
-              <Grid xs={5}>
-                <LockIcon />
-              </Grid>
-              <Grid xs={5}>
-                <Typography>Locked</Typography>
-              </Grid>
-
-              <Grid xs={5}>
-                <LockOpenIcon />
-              </Grid>
-              <Grid xs={5}>
-                <Typography>Unlocked</Typography>
-              </Grid>
-            </Grid>           
-          </Grid>
-          <Grid xs={4.5}>
-            <BasicTabs />
-            <ButtonGrid />
-          </Grid>
-        </Grid>
-        <Button variant='contained' color='success' onClick={fetchContests}>Server Connection Test - View Network</Button>
-        <Button variant='contained' color='success' onClick={fetchPlayers}>Get Single Contest Data</Button>
-      </React.Fragment>
-    </React.Fragment>
-  );
-}
-
-const fetchContests = async () => {
-  const url = baseUrl + "api/Contests";
-  fetch(url)
-  .then(res => res.json())
-  .then((out) => {
-    console.log(out);
-  });
-};
 
 const fetchPlayers = async () => {
   const url = baseUrl + "api/Contests/136053129";
@@ -101,5 +116,5 @@ const learnMore = async () => {
   'right decisions.\n\n' + 
   'Users will be able be able to flexibly, change, undo, and export their lineups.');
 };
-
+ 
 export default App;

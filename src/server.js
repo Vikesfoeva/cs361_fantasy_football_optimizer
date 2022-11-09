@@ -37,6 +37,7 @@ app.get('/api/contests', async (req, res) => {
 });
 
 app.get('/api/contests/:constest_id', async (req, res) => {
+  // Leverage the partner's microservce to get all the players for a given game
   const thisId = parseInt(req.params.constest_id);
   const allPlayersObject = await partnerMicroService(thisId);
   const usablePlayerObject = parseMicroServiceResponse(allPlayersObject);
