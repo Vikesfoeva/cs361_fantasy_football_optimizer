@@ -16,8 +16,7 @@ app.use(express.static(path.join(__dirname,"../build")));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json())
 
-// Add a specific game id at end of this url
-const microServiceURL = 'https://gk361ms.deta.dev/gameid/';
+app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
 
 app.use(express.static('dist'));
 
@@ -28,19 +27,7 @@ app.use(function (req, res, next) {
   next();
 });
 
-async function partnerServiceTest(gameID) {
-  const fullUrl = microServiceURL + String(gameID);
-  const totalPlayers = await axios.get(fullUrl)
-  .then(response => {
-    return response.data;
-  })
-  .catch(error => {
-    console.log(error)
-  })
-}
-
-app.get('/api/dkTest', async (req, res) => {
-  partnerServiceTest('135731827');
+app.get('/api/contests', async (req, res) => {
   const contestsURL = 'https://www.draftkings.com/lobby/getcontests?sport=NFL';
   request(contestsURL, { json: true }, (err, response, body) => {
     if (err) { return console.log(err); }
@@ -49,12 +36,56 @@ app.get('/api/dkTest', async (req, res) => {
   });
 });
 
+app.get('/api/contests/:constest_id', async (req, res) => {
+  const thisId = parseInt(req.params.constest_id);
+  const allPlayersObject = await partnerMicroService(thisId);
+  const usablePlayerObject = parseMicroServiceResponse(allPlayersObject);
+  res.send(JSON.stringify(usablePlayerObject));
+});
+
+async function partnerMicroService(gameID) {
+  // Call the microservice to receive the players in this game
+  const microServiceURL = `https://gk361ms.deta.dev/gameid/${String(gameID)}`;
+  const totalPlayers = await axios.get(microServiceURL)
+  .then(response => {
+    return response.data;
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  return totalPlayers;
+}
+
+function parseMicroServiceResponse(allPlayersObject) {
+  // Creates a condensed more manageable data object to send back to the client
+  const res = {};
+  for (let i=0; i < allPlayersObject.length; i++) {
+    const thisPlayer = allPlayersObject[i];
+    const thisKey = thisPlayer['playerId'];
+    if (thisKey in res && res[thisKey]['salary'] > thisPlayer['salary']) {
+      res[thisKey]['salary'] = thisPlayer['salary']
+    } else {
+      res[thisKey] = {
+        firstName: thisPlayer['firstName'],
+        lastName: thisPlayer['lastName'],
+        displayName: thisPlayer['displayName'],
+        salary: thisPlayer['salary'],
+        projectedPoints: thisPlayer['draftStatAttributes'][0]['value'],
+        opponentRank: thisPlayer['draftStatAttributes'][1]['value'],
+        quality: thisPlayer['draftStatAttributes'][1]['quality'],
+        teamAbbreviation: thisPlayer['teamAbbreviation'],
+        position: thisPlayer['position'],
+        image: thisPlayer['playerImage160']
+      }
+    }
+  };
+  return res;
+};
+
 app.get('/', function(req, res) {
   console.log('hi');
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
-
-app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
 
 // This endpoint returns the unlocked contests for the current week
 function parseContests(inputContests) {

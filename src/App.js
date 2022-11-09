@@ -68,14 +68,24 @@ function App() {
             <ButtonGrid />
           </Grid>
         </Grid>
-        <Button variant='contained' color='success' onClick={fetchDataTest}>Server Connection Test - View Network</Button>
+        <Button variant='contained' color='success' onClick={fetchContests}>Server Connection Test - View Network</Button>
+        <Button variant='contained' color='success' onClick={fetchPlayers}>Get Single Contest Data</Button>
       </React.Fragment>
     </React.Fragment>
   );
 }
 
-const fetchDataTest = async () => {
-  const url = baseUrl + "api/dkTest";
+const fetchContests = async () => {
+  const url = baseUrl + "api/Contests";
+  fetch(url)
+  .then(res => res.json())
+  .then((out) => {
+    console.log(out);
+  });
+};
+
+const fetchPlayers = async () => {
+  const url = baseUrl + "api/Contests/136053129";
   fetch(url)
   .then(res => res.json())
   .then((out) => {
