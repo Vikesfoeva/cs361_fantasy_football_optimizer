@@ -90,11 +90,18 @@ app.get('/', function(req, res) {
 
 // This endpoint returns the unlocked contests for the current week
 function parseContests(inputContests) {
-  const outputContests = {};
+  const outputContests = [];
   for (let i=0; i < inputContests.length; i++) {
     const thisContest = inputContests[i];
     if (thisContest['gameType'] === 'Showdown Captain Mode' && thisContest['n'].includes('Casual NFL Showdown $10 Double Up ')) {
-      outputContests[thisContest['n']] = thisContest;
+      let friendlyName = thisContest['n'].split("(")[1];
+      friendlyName = friendlyName.split(")")[0];
+      outputContests.push({
+        id: thisContest['id'],
+        fullName: thisContest['n'],
+        date: thisContest['sdstring'],
+        friendlyName: friendlyName
+      });
     }
   }
   return outputContests;

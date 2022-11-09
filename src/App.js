@@ -18,13 +18,17 @@ import HelpIcon from '@mui/icons-material/Help';
 
 class App extends Component {
   state = { 
-    games: ['hi', 'hello']
+    games: [],
+    selectedGame: 0,
+    players: []
   } 
   constructor() {
     super();
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    this.handleFetchContests()
+  }
 
   render() { 
     return (
@@ -35,12 +39,15 @@ class App extends Component {
           <WeekSelector />
           <GameSelector 
             gamesAvail={this.state.games}
+            updateGameSelection={this.handleUpdateGame}
           />
-          <Button variant='contained' color='success' onClick={learnMore}>Learn More <HelpIcon /></Button>
+          <Button variant='contained' color='success' onClick={handleLearnMore}>Learn More <HelpIcon /></Button>
   
           <Grid container spacing={2}>
             <Grid xs={4.5}>
-              <AllPlayersTable />
+              <AllPlayersTable 
+                playersAvail={this.state.players}
+              />
             </Grid>
             <Grid xs={1.5}>
               <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
@@ -72,22 +79,48 @@ class App extends Component {
               <ButtonGrid />
             </Grid>
           </Grid>
-          <Button variant='contained' color='success' onClick={this.handleFetchContests}>Get Single Contest Data</Button>
+          <Button variant='contained' color='success' onClick={this.handleFetchContests} disabled={false} key="networkButton">Get Single Contest Data</Button>
         </React.Fragment>
       </React.Fragment>
     );
   }
-  handleFetchContests = () => {
+
+  // On Load, Get All Games
+  handleFetchContests = async () => {
     const url = window.location.href + "api/Contests";
+    await fetch(url)
+    .then(res => res.json())
+    .then((games) => {
+      this.setState({ games });
+    });
+  }; 
+
+  // Receive the ID from the game slector dropdown and update State
+  handleUpdateGame = (inputChosenId) => {
+    const selectedGame = inputChosenId;
+    this.handleFetchPlayers(inputChosenId);
+    this.setState({ selectedGame });
+  }
+
+  // Based on the newly chosen game, update the players
+  handleFetchPlayers = async (chosenGameID) => {
+    const url = baseUrl + "api/Contests/" + String(chosenGameID);
     fetch(url)
     .then(res => res.json())
     .then((out) => {
       console.log(out);
     });
-    const games = this.state.games;
-    games.push('Hello more!')
-    this.setState({ games });
-  }; 
+  };
+
+   handleLearnMore = () => {
+    alert('This website allows a user to optimize their fantasy football line ups by aggregating ' + 
+    'data, helping to run optimizations, and letting them visualize different outcomes.\n\n' + 
+    'The user can select which week of games they want to choose from, which game that week ' + 
+    'and then use the optimization, and visualization tools on the right to help them arrive at the' + 
+    'right decisions.\n\n' + 
+    'Users will be able be able to flexibly, change, undo, and export their lineups.');
+  };
+
 }
 
 const baseUrl = window.location.href;
@@ -98,23 +131,5 @@ const Item = styled(Paper)(({ theme }) => ({
   textAlign: 'center',
   color: theme.palette.text.secondary,
 }));
-
-const fetchPlayers = async () => {
-  const url = baseUrl + "api/Contests/136053129";
-  fetch(url)
-  .then(res => res.json())
-  .then((out) => {
-    console.log(out);
-  });
-};
-
-const learnMore = async () => {
-  alert('This website allows a user to optimize their fantasy football line ups by aggregating ' + 
-  'data, helping to run optimizations, and letting them visualize different outcomes.\n\n' + 
-  'The user can select which week of games they want to choose from, which game that week ' + 
-  'and then use the optimization, and visualization tools on the right to help them arrive at the' + 
-  'right decisions.\n\n' + 
-  'Users will be able be able to flexibly, change, undo, and export their lineups.');
-};
  
 export default App;
