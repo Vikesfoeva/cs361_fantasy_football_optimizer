@@ -20,14 +20,27 @@ class App extends Component {
   state = { 
     games: [],
     selectedGame: 0,
-    players: []
+    playersBank: {},
+    playersTable: {
+      page: 0,
+      rowsPerPage: 25,
+      rowsPerPageOptions: [25, 50, 100],
+      rows: []
+    }
   } 
   constructor() {
     super();
   }
 
-  componentDidMount() {
-    this.handleFetchContests()
+  async componentDidMount() {
+    const totalGames = await this.handleFetchContests();
+    console.log(totalGames);
+    const gameKeys = [];
+    for (let i=0;  i < totalGames.length; i++) {
+      gameKeys.push(totalGames[i]['id']);
+    }
+    await this.handleGatherAllPlayers(gameKeys);
+    await this.promisedSetState({ games: totalGames})
   }
 
   render() { 
@@ -41,12 +54,15 @@ class App extends Component {
             gamesAvail={this.state.games}
             updateGameSelection={this.handleUpdateGame}
           />
-          <Button variant='contained' color='success' onClick={handleLearnMore}>Learn More <HelpIcon /></Button>
+          <Button variant='contained' color='success' onClick={this.handleLearnMore}>Learn More <HelpIcon /></Button>
   
           <Grid container spacing={2}>
             <Grid xs={4.5}>
               <AllPlayersTable 
                 playersAvail={this.state.players}
+                playersTable={this.state.playersTable}
+                changeRowsPerPage={this.handleRowsPerPage}
+                changePage={this.handlePageChange}
               />
             </Grid>
             <Grid xs={1.5}>
@@ -84,15 +100,15 @@ class App extends Component {
       </React.Fragment>
     );
   }
-
+  // https://stackoverflow.com/questions/51968714/is-it-correct-to-use-await-setstate
+  promisedSetState = (newState) => new Promise(resolve => this.setState( newState, resolve ));
+  
   // On Load, Get All Games
   handleFetchContests = async () => {
     const url = window.location.href + "api/Contests";
-    await fetch(url)
-    .then(res => res.json())
-    .then((games) => {
-      this.setState({ games });
-    });
+    const outGames = await fetch(url).then(res => res.json());
+    // await this.promisedSetState({ games: outGames})
+    return outGames;
   }; 
 
   // Receive the ID from the game slector dropdown and update State
@@ -104,14 +120,13 @@ class App extends Component {
 
   // Based on the newly chosen game, update the players
   handleFetchPlayers = async (chosenGameID) => {
-    const url = baseUrl + "api/Contests/" + String(chosenGameID);
-    fetch(url)
-    .then(res => res.json())
-    .then((out) => {
-      console.log(out);
-    });
+    const playersTable = this.state.playersTable;
+    const newRows = this.state.playersBank[chosenGameID];
+    playersTable.rows = newRows;
+    this.setState({ playersTable });
   };
 
+  // Learn more button
    handleLearnMore = () => {
     alert('This website allows a user to optimize their fantasy football line ups by aggregating ' + 
     'data, helping to run optimizations, and letting them visualize different outcomes.\n\n' + 
@@ -121,6 +136,65 @@ class App extends Component {
     'Users will be able be able to flexibly, change, undo, and export their lineups.');
   };
 
+  // Handle Gather Players
+  handleGatherAllPlayers = async (gameIds) => {
+    const thisBank = {}
+    for (let i=0; i < gameIds.length; i++) {
+      const thisID = gameIds[i];
+      const url = baseUrl + "api/Contests/" + String(thisID);
+      await fetch(url)
+      .then(res => res.json())
+      .then((out) => {
+        thisBank[thisID] = this.handlePopulateRows(out);
+      });
+    };
+    await this.promisedSetState({ playersBank: thisBank})
+  }
+
+  // Populate table with players
+  handlePopulateRows = (playerData) => {
+    const playersTable = this.state.playersTable;
+    const newRows = [];
+
+    const playerKeys = Object.keys(playerData);
+    const playerCount = playerKeys.length;
+
+    for (let i=0; i < playerCount; i++) {
+      const thisID = playerKeys[i];
+      const thisData = createData(
+        playerData[thisID]['displayName'],
+        playerData[thisID]['position'],
+        playerData[thisID]['teamAbbreviation'],
+        playerData[thisID]['projectedPoints'],
+        playerData[thisID]['salary']
+      );
+      newRows.push(thisData);
+    }
+    return newRows;
+  }
+
+  // Adjust num rows per page
+  handleRowsPerPage = (count) => {
+    const playersTable = this.state.playersTable;
+    playersTable.rowsPerPage = count;
+    this.setState({ playersTable });
+  }
+
+  // Toggle between Pages
+  handlePageChange = (event) => {
+    const playersTable = this.state.playersTable;
+    if (event === "KeyboardArrowRightIcon") {
+      playersTable.page = playersTable.page + 1;
+    } else {
+      playersTable.page = playersTable.page - 1;
+    }
+    
+    this.setState({ playersTable });
+  }
+}
+
+function createData(name, position, team, points, salary) {
+  return { name, position, team, points, salary };
 }
 
 const baseUrl = window.location.href;

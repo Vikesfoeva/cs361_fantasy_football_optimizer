@@ -10,23 +10,9 @@ import TableRow from '@mui/material/TableRow';
 
 class AllPlayersTable extends Component {
   render() { 
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(25);
-  
-    const handleChangePage = (event, newPage) => {
-      setPage(newPage);
-    };
-  
-    const handleChangeRowsPerPage = (event) => {
-      setRowsPerPage(+event.target.value);
-      setPage(0);
-    };
-
-    function createData(name, position, team, points, salary) {
-      return { name, position, team, points, salary };
-    }
-
-    const rows = [];
+    const page = this.props.playersTable.page;
+    const rowsPerPage = this.props.playersTable.rowsPerPage;
+    const rows = this.props.playersTable.rows;
 
     const columns = [
       { id: 'name', label: 'Name', minWidth: 80 },
@@ -76,13 +62,13 @@ class AllPlayersTable extends Component {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[25, 50, 100]}
+          rowsPerPageOptions={this.props.playersTable.rowsPerPageOptions}
           component="div"
           count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          onPageChange={(event) => this.props.changePage(event.target.dataset.testid)}
+          onRowsPerPageChange={(event) => this.props.changeRowsPerPage(event.target.value)}
         />
       </Paper>
     );
