@@ -95,7 +95,7 @@ class App extends Component {
               <ButtonGrid />
             </Grid>
           </Grid>
-          <Button variant='contained' color='success' onClick={this.handleFetchContests} disabled={false} key="networkButton">Get Single Contest Data</Button>
+          <Button variant='contained' color='success' onClick={this.handleTestMicro} disabled={false} key="networkButton">Get Single Contest Data</Button>
         </React.Fragment>
       </React.Fragment>
     );
@@ -110,6 +110,16 @@ class App extends Component {
     // await this.promisedSetState({ games: outGames})
     return outGames;
   }; 
+
+  handleTestMicro = () => {
+    const testId = 136053129;
+    const url = baseUrl + "api/Contests/" + String(testId);
+    fetch(url)
+    .then(res => res.json())
+    .then((out) => {
+      console.log(out);
+    });
+  }
 
   // Receive the ID from the game slector dropdown and update State
   handleUpdateGame = (inputChosenId) => {
