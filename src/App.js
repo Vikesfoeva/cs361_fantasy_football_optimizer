@@ -70,17 +70,16 @@ class App extends Component {
             updateGameSelection={this.handleUpdateGame}
           />
           <Button variant='contained' color='success' onClick={this.handleLearnMore}>Learn More <HelpIcon /></Button>
-  
+          <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
           <Grid container spacing={2}>
-            <Grid xs={4.5}>
+            <Grid xs={6}>
               <AllPlayersTable 
                 playersTable={this.state.playersTable}
                 changeRowsPerPage={this.handleRowsPerPage}
                 changePage={this.handlePageChange}
               />
             </Grid>
-            <Grid xs={1.5}>
-              <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
+            {/* <Grid xs={1.5}>
               <Grid container spacing={2}>
                 <Grid xs={5}>
                   <ClearIcon />
@@ -103,8 +102,8 @@ class App extends Component {
                   <Typography>Unlocked</Typography>
                 </Grid>
               </Grid>           
-            </Grid>
-            <Grid xs={4.5}>
+            </Grid> */}
+            <Grid xs={5.5}>
               <BasicTabs 
                 chosenPlayersTable={this.state.chosenPlayersTable}
                 addNewTab={this.handleAddNewPage}

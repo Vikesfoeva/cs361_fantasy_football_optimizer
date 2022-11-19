@@ -7,6 +7,11 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import ClearIcon from '@mui/icons-material/Clear';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import AddIcon from '@mui/icons-material/Add';
+import Box from '@mui/material/Box';
 
 class AllPlayersTable extends Component {
   render() { 
@@ -16,10 +21,11 @@ class AllPlayersTable extends Component {
 
     const columns = [
       { id: 'name', label: 'Name', minWidth: 80 },
-      { id: 'position', label: 'Position', minWidth: 60, align: 'right' },
-      { id: 'team', label: 'Team', minWidth: 60, align: 'right' },
-      { id: 'points', label: 'Projected Points', minWidth: 60, align: 'right', format: (value) => value.toFixed(2) },
-      { id: 'salary', label: 'Salary', minWidth: 60, align: 'right' },
+      { id: 'position', label: 'Position', minWidth: 60, align: 'center' },
+      { id: 'team', label: 'Team', minWidth: 60, align: 'center' },
+      { id: 'points', label: 'Projected Points', minWidth: 60, align: 'center', format: (value) => value.toFixed(2) },
+      { id: 'salary', label: 'Salary', minWidth: 60, align: 'center' },
+      { id: 'actions', label: 'Actions', minWidth: 80, algin: 'center'}
     ];
 
     return (
@@ -47,13 +53,24 @@ class AllPlayersTable extends Component {
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                       {columns.map((column) => {
                         const value = row[column.id];
-                        return (
-                          <TableCell key={column.id} align={column.align}>
-                            {column.format && typeof value === 'number'
-                              ? column.format(value)
-                              : value}
-                          </TableCell>
-                        );
+                        if (column.id === 'actions') {
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              <AddIcon />
+                              <ClearIcon />
+                              <LockIcon sx={{ display: { xs: 'none'} }}/>
+                              <LockOpenIcon />
+                            </TableCell>
+                        )} 
+                        else {
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              {column.format && typeof value === 'number'
+                                ? column.format(value)
+                                : value}
+                            </TableCell>
+                          );
+                        }
                       })}
                     </TableRow>
                   );
