@@ -38,7 +38,7 @@ app.get('/api/contests', async (req, res) => {
 
 app.get('/api/contests/:constest_id', async (req, res) => {
   // Leverage the partner's microservce to get all the players for a given game
-  const thisId = parseInt(req.params.constest_id);
+  const thisId = req.params.constest_id;
   const allPlayersObject = await partnerMicroService(thisId);
   const usablePlayerObject = parseMicroServiceResponse(allPlayersObject);
   res.send(JSON.stringify(usablePlayerObject));
@@ -46,7 +46,7 @@ app.get('/api/contests/:constest_id', async (req, res) => {
 
 async function partnerMicroService(gameID) {
   // Call the microservice to receive the players in this game
-  const microServiceURL = `https://gk361ms.deta.dev/gameid/${String(gameID)}`;
+  const microServiceURL = `https://gk361ms.deta.dev/gameid/${gameID}`;
   const totalPlayers = await axios.get(microServiceURL)
   .then(response => {
     return response.data;
@@ -84,7 +84,6 @@ function parseMicroServiceResponse(allPlayersObject) {
 };
 
 app.get('/', function(req, res) {
-  console.log('hi');
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 

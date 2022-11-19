@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -7,69 +7,42 @@ import Box from '@mui/material/Box';
 import ChosenPlayers from './chosenPlayers';
 import AddIcon from '@mui/icons-material/Add';
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
+class BasicTabs extends Component {
+  render() { 
+    const chosenPages = this.props.chosenPlayersTable;
+    const pageKeys = Object.keys(chosenPages);
+    return (
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs aria-label="basic tabs example">
+              {
+                pageKeys.map(thisKey => {
+                  return (
+                    <Tab 
+                      label={"Lineup " + (chosenPages[thisKey].index + 1)}
+                      onClick={() => this.props.changePage(chosenPages[thisKey].index)}
+                    />
+                  )
+                })
+              }
+              <Tab label={<AddIcon />} onClick={() => this.props.addNewTab()} />
+            </Tabs>
+          </Box>
+          {
+            pageKeys.map(thisKey => {
+              return (
+                <Box index={pageKeys.indexOf(thisKey)} hidden={chosenPages[thisKey].hidden}>
+                  <Typography>
+                    <ChosenPlayers 
+                      thisPlayerTable = {chosenPages[thisKey].rows}
+                    />
+                  </Typography>
+                </Box>
+              )})
+          }
         </Box>
-      )}
-    </div>
-  );
+    );
+  }
 }
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
-
-export default function BasicTabs() {
-  const [value, setValue] = React.useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab label="Item One" {...a11yProps(0)} />
-          <Tab label="Item Two" {...a11yProps(1)} />
-          <Tab label="Item Three" {...a11yProps(2)} />
-          <Tab label={<AddIcon />} onClick={addNewTab} />
-        </Tabs>
-      </Box>
-      <TabPanel value={value} index={0}>
-        <ChosenPlayers />
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        <ChosenPlayers />
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        <ChosenPlayers />
-      </TabPanel>
-    </Box>
-  );
-}
-
-function addNewTab() {
-    window.alert('This is the alert that happens when you create a new tab - more features to be added')
-}
+ 
+export default BasicTabs;

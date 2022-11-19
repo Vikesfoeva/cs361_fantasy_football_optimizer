@@ -3,7 +3,6 @@ import WeekSelector from './components/weekSelect';
 import { Icon, Typography } from '@mui/material';
 import GameSelector from './components/gameSelect';
 import AllPlayersTable from './components/playersInGame';
-import ChosenPlayers from './components/chosenPlayers';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
 import { styled } from '@mui/material/styles';
@@ -16,7 +15,16 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
 import HelpIcon from '@mui/icons-material/Help';
 
+const blankRow = [
+  {name: "", points: "", position: "", salary: "", team: ""},
+  {name: "", points: "", position: "", salary: "", team: ""},
+  {name: "", points: "", position: "", salary: "", team: ""},
+  {name: "", points: "", position: "", salary: "", team: ""},
+  {name: "", points: "", position: "", salary: "", team: ""},
+  {name: "", points: "", position: "", salary: "", team: ""}]
+
 class App extends Component {
+
   state = { 
     games: [],
     selectedGame: 0,
@@ -26,6 +34,13 @@ class App extends Component {
       rowsPerPage: 25,
       rowsPerPageOptions: [25, 50, 100],
       rows: []
+    },
+    chosenPlayersTable: {
+        "0" :
+        {rows: blankRow,
+          hidden: false,
+          index: 0
+        }
     }
   } 
   constructor() {
@@ -49,7 +64,7 @@ class App extends Component {
         <React.Fragment>
           <Typography variant='h2'>Fantasy Football Roster Optimization Tool</Typography>
           
-          <WeekSelector />
+          {/* <WeekSelector /> */}
           <GameSelector 
             gamesAvail={this.state.games}
             updateGameSelection={this.handleUpdateGame}
@@ -59,7 +74,6 @@ class App extends Component {
           <Grid container spacing={2}>
             <Grid xs={4.5}>
               <AllPlayersTable 
-                playersAvail={this.state.players}
                 playersTable={this.state.playersTable}
                 changeRowsPerPage={this.handleRowsPerPage}
                 changePage={this.handlePageChange}
@@ -91,7 +105,11 @@ class App extends Component {
               </Grid>           
             </Grid>
             <Grid xs={4.5}>
-              <BasicTabs />
+              <BasicTabs 
+                chosenPlayersTable={this.state.chosenPlayersTable}
+                addNewTab={this.handleAddNewPage}
+                changePage={this.handleChangeLineUpPage}
+              />
               <ButtonGrid />
             </Grid>
           </Grid>
@@ -163,7 +181,6 @@ class App extends Component {
 
   // Populate table with players
   handlePopulateRows = (playerData) => {
-    const playersTable = this.state.playersTable;
     const newRows = [];
 
     const playerKeys = Object.keys(playerData);
@@ -200,6 +217,32 @@ class App extends Component {
     }
     
     this.setState({ playersTable });
+  }
+
+  // Chosen lineups table
+  handleAddNewPage = () => {
+    const chosenPlayersTable = this.state.chosenPlayersTable;
+    const newPage = Object.keys(chosenPlayersTable).length;
+    chosenPlayersTable[String(newPage)] = {
+      rows: blankRow,
+      hidden: true,
+      index: newPage
+    }
+    this.setState({ chosenPlayersTable })
+  }
+
+  handleChangeLineUpPage = (inputKey) => {
+    const chosenPlayersTable = this.state.chosenPlayersTable;
+    const pageKeys = Object.keys(chosenPlayersTable); 
+    for (let i=0; i < pageKeys.length; i++) {
+      const thisPage = pageKeys[i];    
+      if (i === inputKey) {
+        chosenPlayersTable[thisPage].hidden = false;
+      } else {
+        chosenPlayersTable[thisPage].hidden = true;
+      }
+    }
+    this.setState({ chosenPlayersTable })
   }
 }
 
