@@ -18,6 +18,7 @@ class AllPlayersTable extends Component {
     const page = this.props.playersTable.page;
     const rowsPerPage = this.props.playersTable.rowsPerPage;
     const rows = this.props.playersTable.rows;
+    const addPlayerToLineup = this.props.addPlayerToLineup;
 
     const columns = [
       { id: 'name', label: 'Name', minWidth: 80 },
@@ -56,7 +57,9 @@ class AllPlayersTable extends Component {
                         if (column.id === 'actions') {
                           return (
                             <TableCell key={column.id} align={column.align}>
-                              <AddIcon />
+                              <AddIcon 
+                                onClick={() => addPlayerToLineup(row)}
+                              />
                               <ClearIcon />
                               <LockIcon sx={{ display: { xs: 'none'} }}/>
                               <LockOpenIcon />

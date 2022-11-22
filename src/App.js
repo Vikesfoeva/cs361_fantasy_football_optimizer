@@ -15,13 +15,15 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
 import HelpIcon from '@mui/icons-material/Help';
 
+const blankPlayer = {name: "", points: "", position: "", salary: "", team: ""};
 const blankRow = [
-  {name: "", points: "", position: "", salary: "", team: ""},
-  {name: "", points: "", position: "", salary: "", team: ""},
-  {name: "", points: "", position: "", salary: "", team: ""},
-  {name: "", points: "", position: "", salary: "", team: ""},
-  {name: "", points: "", position: "", salary: "", team: ""},
-  {name: "", points: "", position: "", salary: "", team: ""}]
+  blankPlayer, 
+  blankPlayer, 
+  blankPlayer, 
+  blankPlayer, 
+  blankPlayer, 
+  blankPlayer
+]
 
 class App extends Component {
 
@@ -37,11 +39,12 @@ class App extends Component {
     },
     chosenPlayersTable: {
         "0" :
-        {rows: blankRow,
+        {rows: JSON.parse(JSON.stringify(blankRow)),
           hidden: false,
           index: 0
         }
-    }
+    },
+    activePlayersTable: 0
   } 
   constructor() {
     super();
@@ -77,6 +80,7 @@ class App extends Component {
                 playersTable={this.state.playersTable}
                 changeRowsPerPage={this.handleRowsPerPage}
                 changePage={this.handlePageChange}
+                addPlayerToLineup={this.handleAddPlayerToLineup}
               />
             </Grid>
             {/* <Grid xs={1.5}>
@@ -223,10 +227,11 @@ class App extends Component {
     const chosenPlayersTable = this.state.chosenPlayersTable;
     const newPage = Object.keys(chosenPlayersTable).length;
     chosenPlayersTable[String(newPage)] = {
-      rows: blankRow,
+      rows: JSON.parse(JSON.stringify(blankRow)),
       hidden: true,
       index: newPage
     }
+    this.handleChangeLineUpPage(newPage);
     this.setState({ chosenPlayersTable })
   }
 
@@ -236,12 +241,33 @@ class App extends Component {
     for (let i=0; i < pageKeys.length; i++) {
       const thisPage = pageKeys[i];    
       if (i === inputKey) {
+        this.state.activePlayersTable = inputKey;
         chosenPlayersTable[thisPage].hidden = false;
       } else {
         chosenPlayersTable[thisPage].hidden = true;
       }
     }
     this.setState({ chosenPlayersTable })
+  }
+
+  // Adding a player to a lineup
+  handleAddPlayerToLineup = (inputPlayer) => {
+    const curPage = this.state.activePlayersTable;
+    const chosenPlayersTable = this.state.chosenPlayersTable;
+    let isRostered = false;
+    let firstOpen = -1;
+    for (let i=0; i < chosenPlayersTable[curPage].rows.length; i++) {
+      if (chosenPlayersTable[curPage]['rows'][i]['name'] === inputPlayer['name']) {
+        isRostered = true;
+        break;
+      } else if (chosenPlayersTable[curPage]['rows'][i]['name'] === '' && firstOpen === -1) {
+        firstOpen = i;
+      }
+    }
+    if (!isRostered && firstOpen > -1 && firstOpen < 6) {
+      chosenPlayersTable[curPage]['rows'][firstOpen] = inputPlayer;
+      this.setState({ chosenPlayersTable });
+    }
   }
 }
 
