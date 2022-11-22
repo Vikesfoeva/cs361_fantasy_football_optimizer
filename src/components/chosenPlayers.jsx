@@ -6,7 +6,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-
+import ClearIcon from '@mui/icons-material/Clear';
 
 class ChosenPlayers extends Component {
   render() { 
@@ -18,7 +18,8 @@ class ChosenPlayers extends Component {
       { id: 'position', label: 'Position', minWidth: 60, align: 'right'},
       { id: 'team', label: 'Team', minWidth: 60, align: 'right'},
       { id: 'points', label: 'Projected Points', minWidth: 60, align: 'right', format: (value) => value.toFixed(2)},
-      { id: 'salary', label: 'Salary', minWidth: 60, align: 'right'}
+      { id: 'salary', label: 'Salary', minWidth: 60, align: 'right'},
+      { id: 'actions', label: 'Actions', minWidth: 80, algin: 'center'}
     ];
 
     return (
@@ -46,13 +47,23 @@ class ChosenPlayers extends Component {
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                       {columns.map((column) => {
                         const value = row[column.id];
-                        return (
-                          <TableCell key={column.id} align={column.align}>
-                            {column.format && typeof value === 'number'
-                              ? column.format(value)
-                              : value}
-                          </TableCell>
-                        );
+                        if (column.id === 'actions') {
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              <ClearIcon 
+                                onClick={() => console.log(row)}
+                              />
+                            </TableCell>
+                        )} 
+                        else {
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              {column.format && typeof value === 'number'
+                                ? column.format(value)
+                                : value}
+                            </TableCell>
+                          );
+                        }
                       })}
                     </TableRow>
                   );
