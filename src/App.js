@@ -50,6 +50,7 @@ class App extends Component {
     super();
   }
 
+  // More performant once in DB
   async componentDidMount() {
     const totalGames = await this.handleFetchContests();
     console.log(totalGames);
@@ -62,6 +63,7 @@ class App extends Component {
   }
 
   render() { 
+
     return (
       <React.Fragment>
         <React.Fragment>

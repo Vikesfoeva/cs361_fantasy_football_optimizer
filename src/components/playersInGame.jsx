@@ -11,10 +11,17 @@ import ClearIcon from '@mui/icons-material/Clear';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AddIcon from '@mui/icons-material/Add';
-import Box from '@mui/material/Box';
+import { IconButton } from '@mui/material';
+import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 
 class AllPlayersTable extends Component {
+  
   render() { 
+
+    // DOes not seem to be working
+    const theme = createTheme();
+    theme.spacing(10);
+
     const page = this.props.playersTable.page;
     const rowsPerPage = this.props.playersTable.rowsPerPage;
     const rows = this.props.playersTable.rows;
@@ -55,14 +62,28 @@ class AllPlayersTable extends Component {
                       {columns.map((column) => {
                         const value = row[column.id];
                         if (column.id === 'actions') {
+                          // https://smartdevpreneur.com/guide-to-material-ui-iconbutton-onclick-and-hover/#Material-UI_IconButton_ToolTip_on_Hover
                           return (
                             <TableCell key={column.id} align={column.align}>
-                              <AddIcon 
-                                onClick={() => addPlayerToLineup(row)}
-                              />
-                              <ClearIcon />
-                              <LockIcon sx={{ display: { xs: 'none'} }}/>
-                              <LockOpenIcon />
+
+                              <ThemeProvider  theme={theme}>
+                                <IconButton sx={{ "&:hover": { color: "green" }}}>
+                                    <AddIcon onClick={() => addPlayerToLineup(row)}/>
+                                  </IconButton>
+                              </ThemeProvider>
+
+                              <ThemeProvider  theme={theme}>
+                                <IconButton sx={{ "&:hover": { color: "red" }}}>
+                                  <ClearIcon />
+                                </IconButton>
+                              </ThemeProvider>
+                              
+                              <ThemeProvider  theme={theme}>
+                                <IconButton sx={{ "&:hover": { color: "blue" }}}>
+                                  <LockIcon sx={{ display: { xs: 'none'} }}/>
+                                  <LockOpenIcon />
+                                </IconButton>
+                              </ThemeProvider>
                             </TableCell>
                         )} 
                         else {
