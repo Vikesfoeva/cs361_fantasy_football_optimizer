@@ -7,6 +7,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import ClearIcon from '@mui/icons-material/Clear';
+import { IconButton } from '@mui/material';
 
 class ChosenPlayers extends Component {
   render() { 
@@ -47,14 +48,23 @@ class ChosenPlayers extends Component {
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                       {columns.map((column) => {
                         const value = row[column.id];
-                        if (column.id === 'actions') {
+                        if (column.id === 'actions' && row['display'] !== 'none') {
                           return (
                             <TableCell key={column.id} align={column.align}>
-                              <ClearIcon 
-                                onClick={() => this.props.removeFromLineup(row)}
-                              />
+                              <IconButton sx={{ "&:hover": { color: "red" }}}>
+                                <ClearIcon 
+                                  onClick={() => this.props.removeFromLineup(row)}
+                                  sx={{ display: { xs: row['display']} }}
+                                />
+                              </IconButton>
                             </TableCell>
-                        )} 
+                        )} else if (column.id === 'actions') {
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              <ClearIcon sx={{ display: { xs: 'none'} }}/>
+                            </TableCell>
+                          )
+                        }
                         else {
                           return (
                             <TableCell key={column.id} align={column.align}>

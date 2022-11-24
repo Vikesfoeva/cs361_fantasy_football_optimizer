@@ -12,15 +12,10 @@ import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AddIcon from '@mui/icons-material/Add';
 import { IconButton } from '@mui/material';
-import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 
 class AllPlayersTable extends Component {
   
   render() { 
-
-    // DOes not seem to be working
-    const theme = createTheme();
-    theme.spacing(10);
 
     const page = this.props.playersTable.page;
     const rowsPerPage = this.props.playersTable.rowsPerPage;
@@ -66,24 +61,18 @@ class AllPlayersTable extends Component {
                           return (
                             <TableCell key={column.id} align={column.align}>
 
-                              <ThemeProvider  theme={theme}>
-                                <IconButton sx={{ "&:hover": { color: "green" }}}>
-                                    <AddIcon onClick={() => addPlayerToLineup(row)}/>
-                                  </IconButton>
-                              </ThemeProvider>
+                              <IconButton sx={{ "&:hover": { color: "green" }}}>
+                                  <AddIcon onClick={() => addPlayerToLineup(row)}/>
+                                </IconButton>
 
-                              <ThemeProvider  theme={theme}>
-                                <IconButton sx={{ "&:hover": { color: "red" }}}>
-                                  <ClearIcon />
-                                </IconButton>
-                              </ThemeProvider>
-                              
-                              <ThemeProvider  theme={theme}>
-                                <IconButton sx={{ "&:hover": { color: "blue" }}}>
-                                  <LockIcon sx={{ display: { xs: 'none'} }}/>
-                                  <LockOpenIcon />
-                                </IconButton>
-                              </ThemeProvider>
+                              <IconButton sx={{ "&:hover": { color: "red" }}}>
+                                <ClearIcon />
+                              </IconButton>
+                            
+                              <IconButton sx={{ "&:hover": { color: "blue" }}}>
+                                <LockIcon sx={{ display: { xs: 'none'} }}/>
+                                <LockOpenIcon sx={{ display: { xs: 1} }}/>
+                              </IconButton> 
                             </TableCell>
                         )} 
                         else {

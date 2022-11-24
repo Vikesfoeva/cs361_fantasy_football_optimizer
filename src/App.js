@@ -15,7 +15,7 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
 import HelpIcon from '@mui/icons-material/Help';
 
-const blankPlayer = {name: "", points: "", position: "", salary: "", team: ""};
+const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none"};
 const blankRow = [
   blankPlayer, 
   blankPlayer, 
@@ -201,6 +201,7 @@ class App extends Component {
         playerData[thisID]['projectedPoints'],
         playerData[thisID]['salary']
       );
+      thisData['display'] = 1;
       newRows.push(thisData);
     }
     return newRows;
