@@ -14,9 +14,13 @@ import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
 import HelpIcon from '@mui/icons-material/Help';
+import { act } from 'react-dom/test-utils';
+
+// TOdo need to find how to click change the different tabs of the basic grid
+// When a lineup is deleted or all are reset the point get's misaligned
 
 const baseUrl = window.location.href;
-const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none", locked: false};
+const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none", locked: false, bannedFromLineup: false};
 const blankRow = [
   blankPlayer, 
   blankPlayer, 
@@ -46,7 +50,8 @@ class App extends Component {
       rows: []
     },
     chosenPlayersTable: JSON.parse(JSON.stringify(baseChosenPlayers)),
-    activePlayersTable: 0
+    activePlayersTable: 0,
+    justDeleted: null
   } 
   constructor() {
     super();
@@ -123,6 +128,8 @@ class App extends Component {
               />
               <ButtonGrid
                 resetAllLineUps = {this.handleResetAllLineUps}
+                deleteOneLineup = {this.handleDeleteOneLineup}
+                undoDelete = {this.handleUndoDelete}
               />
             </Grid>
           </Grid>
@@ -209,6 +216,7 @@ class App extends Component {
       );
       thisData['display'] = 1;
       thisData['locked'] = false;
+      thisData['bannedFromLineup'] = false;
       newRows.push(thisData);
     }
     return newRows;
@@ -318,12 +326,77 @@ class App extends Component {
     this.setState({ chosenPlayersTable });
   }
 
+  // https://mui.com/material-ui/react-alert/
   // Handle Resetting all lineueps
   handleResetAllLineUps = () => {
     const chosenPlayersTable = JSON.parse(JSON.stringify(baseChosenPlayers));
     const activePlayersTable = 0;
+    const justDeleted = this.state.chosenPlayersTable;
+    this.setState({ justDeleted })
     this.setState({ chosenPlayersTable });
     this.setState({ activePlayersTable });
+  }
+
+  // Handle Deleting 1 Lineuo
+  handleDeleteOneLineup = () => {
+    let activePlayersTable = this.state.activePlayersTable;
+    const curChosenTable = this.state.chosenPlayersTable;
+    const countLineUps = Object.keys(curChosenTable).length;
+    console.log(curChosenTable);
+    if (countLineUps < 2) {
+      window.alert('Cannot delete your last lineup.');
+      return;
+    }
+
+    const chosenPlayersTable = {};
+    let pointer = 0;
+    for (let i=0; i < countLineUps; i++) {
+
+      if (i === activePlayersTable) {
+        const justDeleted = this.state.chosenPlayersTable;
+        this.setState({ justDeleted })
+        continue;
+      } else {
+        chosenPlayersTable[String(pointer)] = {
+          rows: JSON.parse(JSON.stringify(curChosenTable[String(i)]['rows'])),
+          hidden: true,
+          index: pointer
+        }
+      pointer = pointer + 1;
+      }
+    }
+
+    activePlayersTable = activePlayersTable - 1;
+    if (activePlayersTable < 0) {
+      activePlayersTable = 0;
+    }
+
+    chosenPlayersTable[String(activePlayersTable)]['hidden'] = false;
+
+    this.setState({ activePlayersTable });
+    this.setState({ chosenPlayersTable });
+  }
+
+  // Handle Undo 1 Most Recent Delete
+  handleUndoDelete = () => {
+    const chosenPlayersTable = this.state.justDeleted;
+    if (chosenPlayersTable === null) {
+      window.alert('Nothing to restore, only the single most recent deletion is stored.');
+      return;
+    }
+
+    let activePlayersTable = 0;
+    for (let i=0; i < Object.keys(chosenPlayersTable).length; i++) {
+      if (chosenPlayersTable[i]['hidden'] === false) {
+        activePlayersTable = i;
+        break;
+      }
+    }
+
+    const justDeleted = null;
+    this.setState({ activePlayersTable });
+    this.setState({ chosenPlayersTable });
+    this.setState({ justDeleted });
   }
 
   // Create proper data structure for rows

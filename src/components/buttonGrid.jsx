@@ -19,7 +19,7 @@ class ButtonGrid extends Component {
                 variant = "contained" 
                 color = 'error' 
                 endIcon = {<DeleteIcon />} 
-                onClick = {deleteLineUpPrompt}
+                onClick = {() => this.props.deleteOneLineup()}
               >
                 Delete Line Up
               </Button>
@@ -29,6 +29,7 @@ class ButtonGrid extends Component {
                 variant="contained" 
                 color='info' 
                 endIcon={<UndoIcon />}
+                onClick = {() => this.props.undoDelete()}
               >
                 Undo Delete
               </Button>
@@ -53,8 +54,3 @@ class ButtonGrid extends Component {
 }
  
 export default ButtonGrid;
-
-// https://mui.com/material-ui/react-alert/
-function deleteLineUpPrompt() {
-    window.alert('You pressed delete - later intend to make this pop up look nicer with material ui');
-}
