@@ -15,7 +15,8 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
 import HelpIcon from '@mui/icons-material/Help';
 
-const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none"};
+const baseUrl = window.location.href;
+const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none", locked: false};
 const blankRow = [
   blankPlayer, 
   blankPlayer, 
@@ -24,6 +25,13 @@ const blankRow = [
   blankPlayer, 
   blankPlayer
 ]
+const baseChosenPlayers = {
+  "0" :
+  {rows: JSON.parse(JSON.stringify(blankRow)),
+    hidden: false,
+    index: 0
+  }
+}
 
 class App extends Component {
 
@@ -37,13 +45,7 @@ class App extends Component {
       rowsPerPageOptions: [25, 50, 100],
       rows: []
     },
-    chosenPlayersTable: {
-        "0" :
-        {rows: JSON.parse(JSON.stringify(blankRow)),
-          hidden: false,
-          index: 0
-        }
-    },
+    chosenPlayersTable: JSON.parse(JSON.stringify(baseChosenPlayers)),
     activePlayersTable: 0
   } 
   constructor() {
@@ -83,6 +85,8 @@ class App extends Component {
                 changeRowsPerPage={this.handleRowsPerPage}
                 changePage={this.handlePageChange}
                 addPlayerToLineup={this.handleAddPlayerToLineup}
+                lockInPlayer = {this.handleLockingPlayer}
+                unlockPlayer = {this.handleUnlockingPlayer}
               />
             </Grid>
             {/* <Grid xs={1.5}>
@@ -112,14 +116,16 @@ class App extends Component {
             <Grid xs={5.5}>
               <BasicTabs 
                 chosenPlayersTable={this.state.chosenPlayersTable}
+                activePlayersTable = {this.state.activePlayersTable}
                 addNewTab={this.handleAddNewPage}
                 changePage={this.handleChangeLineUpPage}
                 removeFromLineup={this.handleRemovePlayerLineup}
               />
-              <ButtonGrid />
+              <ButtonGrid
+                resetAllLineUps = {this.handleResetAllLineUps}
+              />
             </Grid>
           </Grid>
-          <Button variant='contained' color='success' onClick={this.handleTestMicro} disabled={false} key="networkButton">Get Single Contest Data</Button>
         </React.Fragment>
       </React.Fragment>
     );
@@ -194,7 +200,7 @@ class App extends Component {
 
     for (let i=0; i < playerCount; i++) {
       const thisID = playerKeys[i];
-      const thisData = createData(
+      const thisData = this.handleCreateData(
         playerData[thisID]['displayName'],
         playerData[thisID]['position'],
         playerData[thisID]['teamAbbreviation'],
@@ -202,6 +208,7 @@ class App extends Component {
         playerData[thisID]['salary']
       );
       thisData['display'] = 1;
+      thisData['locked'] = false;
       newRows.push(thisData);
     }
     return newRows;
@@ -274,6 +281,30 @@ class App extends Component {
     }
   }
 
+  // Handle locking a player into an optimized lineup
+  handleLockingPlayer = (inputPlayer) => {
+    const playersTable = this.handleLockingLogic(inputPlayer, true);
+    this.setState({ playersTable })
+  }
+
+  // Handle unlocking a player from optimized lineups
+  handleUnlockingPlayer = (inputPlayer) => {
+    const playersTable = this.handleLockingLogic(inputPlayer, false);
+    this.setState({ playersTable })
+  }
+
+  // Handle shared locking logic
+  handleLockingLogic = (inputPlayer, newState) => {
+    const thisTable = this.state.playersTable;
+    for (let i=0; i < thisTable.rows.length; i++) {
+      if (thisTable.rows[i]['name'] === inputPlayer['name']) {
+        thisTable.rows[i]['locked'] = newState;
+        break;
+      }
+    }
+    return thisTable;
+  }
+
   // Remove a player from the lineup
   handleRemovePlayerLineup = (inputPlayer) => {
     const curPage = this.state.activePlayersTable;
@@ -286,19 +317,19 @@ class App extends Component {
     }
     this.setState({ chosenPlayersTable });
   }
+
+  // Handle Resetting all lineueps
+  handleResetAllLineUps = () => {
+    const chosenPlayersTable = JSON.parse(JSON.stringify(baseChosenPlayers));
+    const activePlayersTable = 0;
+    this.setState({ chosenPlayersTable });
+    this.setState({ activePlayersTable });
+  }
+
+  // Create proper data structure for rows
+  handleCreateData = (name, position, team, points, salary) => {
+    return { name, position, team, points, salary };
+  }
 }
 
-function createData(name, position, team, points, salary) {
-  return { name, position, team, points, salary };
-}
-
-const baseUrl = window.location.href;
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary,
-}));
- 
 export default App;

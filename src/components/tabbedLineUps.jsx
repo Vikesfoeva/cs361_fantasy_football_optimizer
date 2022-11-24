@@ -7,8 +7,9 @@ import ChosenPlayers from './chosenPlayers';
 import AddIcon from '@mui/icons-material/Add';
 
 class BasicTabs extends Component {
+  
   state = {
-    value: 0
+    value: this.props.activePlayersTable
   };
 
   handleChange = (event, value) => {

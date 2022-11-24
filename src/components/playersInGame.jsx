@@ -58,6 +58,15 @@ class AllPlayersTable extends Component {
                         const value = row[column.id];
                         if (column.id === 'actions') {
                           // https://smartdevpreneur.com/guide-to-material-ui-iconbutton-onclick-and-hover/#Material-UI_IconButton_ToolTip_on_Hover
+                          
+                          let lockingIcon;
+
+                          if (!row.locked) {
+                            lockingIcon = this.handleLockingIcon(row);
+                          } else {
+                            lockingIcon = this.handleUnlockingIcon(row);
+                          }
+                          
                           return (
                             <TableCell key={column.id} align={column.align}>
 
@@ -68,11 +77,9 @@ class AllPlayersTable extends Component {
                               <IconButton sx={{ "&:hover": { color: "red" }}}>
                                 <ClearIcon />
                               </IconButton>
-                            
-                              <IconButton sx={{ "&:hover": { color: "blue" }}}>
-                                <LockIcon sx={{ display: { xs: 'none'} }}/>
-                                <LockOpenIcon sx={{ display: { xs: 1} }}/>
-                              </IconButton> 
+
+                              {lockingIcon}
+
                             </TableCell>
                         )} 
                         else {
@@ -103,6 +110,20 @@ class AllPlayersTable extends Component {
       </Paper>
     );
   }
+  handleLockingIcon = (row) => {
+    return(
+      <IconButton sx={{ "&:hover": { color: "blue" }}}>
+        <LockOpenIcon onClick={() => this.props.lockInPlayer(row)}/>
+      </IconButton> 
+    )
+  }
+  handleUnlockingIcon = (row) => {
+    return (
+      <IconButton sx={{ "&:hover": { color: "blue" }}}>
+        <LockIcon onClick={() => this.props.unlockPlayer(row)} />
+      </IconButton> 
+    )
+    }
 }
  
 export default AllPlayersTable;
