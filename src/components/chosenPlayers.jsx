@@ -51,7 +51,7 @@ class ChosenPlayers extends Component {
                           return (
                             <TableCell key={column.id} align={column.align}>
                               <ClearIcon 
-                                onClick={() => console.log(row)}
+                                onClick={() => this.props.removeFromLineup(row)}
                               />
                             </TableCell>
                         )} 

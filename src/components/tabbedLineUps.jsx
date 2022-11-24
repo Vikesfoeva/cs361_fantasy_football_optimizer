@@ -44,6 +44,7 @@ class BasicTabs extends Component {
                   <Typography>
                     <ChosenPlayers 
                       thisPlayerTable = {chosenPages[thisKey].rows}
+                      removeFromLineup = {this.props.removeFromLineup}
                     />
                   </Typography>
                 </Box>

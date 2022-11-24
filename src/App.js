@@ -114,6 +114,7 @@ class App extends Component {
                 chosenPlayersTable={this.state.chosenPlayersTable}
                 addNewTab={this.handleAddNewPage}
                 changePage={this.handleChangeLineUpPage}
+                removeFromLineup={this.handleRemovePlayerLineup}
               />
               <ButtonGrid />
             </Grid>
@@ -270,6 +271,19 @@ class App extends Component {
       chosenPlayersTable[curPage]['rows'][firstOpen] = inputPlayer;
       this.setState({ chosenPlayersTable });
     }
+  }
+
+  // Remove a player from the lineup
+  handleRemovePlayerLineup = (inputPlayer) => {
+    const curPage = this.state.activePlayersTable;
+    const chosenPlayersTable = this.state.chosenPlayersTable;
+    for (let i=0; i < chosenPlayersTable[curPage].rows.length; i++) {
+      if (chosenPlayersTable[curPage]['rows'][i]['name'] === inputPlayer['name']) {
+        chosenPlayersTable[curPage]['rows'][i] = JSON.parse(JSON.stringify(blankPlayer));
+        break;
+      }
+    }
+    this.setState({ chosenPlayersTable });
   }
 }
 
