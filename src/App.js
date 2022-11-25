@@ -15,9 +15,41 @@ import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
 import HelpIcon from '@mui/icons-material/Help';
 import { act } from 'react-dom/test-utils';
+import $ from 'jquery';
+import 'bootstrap';
+import bootbox from 'bootbox';
 
 // TOdo need to find how to click change the different tabs of the basic grid
 // When a lineup is deleted or all are reset the point get's misaligned
+
+// ToDo Fix how the games show up slowly - can I reorganize how the server handles things?
+
+// TOdo Show the weather where the games is
+
+// Todo fix sbowing which games snhow up - I seem to be missing some
+
+// Todo build a basic algorithim that includes locking / banning players (make sure their total locks are not above salary)
+
+// Improve the key legend for telling a user what does what
+
+// Implement an algorithim to do basic roster optimization
+
+// DOwnload CSV fucntion
+
+// Add salary counter to show ho wmuch salary in this lineup is left
+
+// Add Captain functionality - update algorithim, call out the captain row
+
+// Cap total num lineups at 5
+
+// Allow user to sort the all players table
+// Set default sort to descending total points
+// To do - some players are showing a rank in their totals points section
+
+// standardize button sizing, height, and spacing to make the UI look more uniform
+
+// NIce to have - drag and drop
+// Nice to have - indicate in the left table if a player is already marked as chose in the right table
 
 const baseUrl = window.location.href;
 const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none", locked: false, bannedFromLineup: false};
@@ -379,6 +411,7 @@ class App extends Component {
 
   // Handle Undo 1 Most Recent Delete
   handleUndoDelete = () => {
+    bootbox.alert("Your message here…");
     const chosenPlayersTable = this.state.justDeleted;
     if (chosenPlayersTable === null) {
       window.alert('Nothing to restore, only the single most recent deletion is stored.');
