@@ -40,8 +40,6 @@ import Stack from '@mui/material/Stack';
 
 // Add Captain functionality - update algorithim, call out the captain row
 
-// Cap total num lineups at 5
-
 // Allow user to sort the all players table
 // Set default sort to descending total points
 // To do - some players are showing a rank in their totals points section
@@ -88,7 +86,8 @@ class App extends Component {
     chosenPlayersTable: JSON.parse(JSON.stringify(baseChosenPlayers)),
     activePlayersTable: 0,
     activeSalaryRemaining: 50000,
-    justDeleted: null
+    justDeleted: null,
+    addLineUpEnabled: false
   } 
   constructor() {
     super();
@@ -175,6 +174,7 @@ class App extends Component {
               <BasicTabs 
                 chosenPlayersTable={this.state.chosenPlayersTable}
                 activePlayersTable = {this.state.activePlayersTable}
+                addLineUpEnabled = {this.state.addLineUpEnabled}
                 addNewTab={this.handleAddNewPage}
                 changePage={this.handleChangeLineUpPage}
                 removeFromLineup={this.handleRemovePlayerLineup}
@@ -200,6 +200,17 @@ class App extends Component {
     // await this.promisedSetState({ games: outGames})
     return outGames;
   }; 
+
+  // Set the proper state of add new page button
+  handleDisableAddNewLineup = async () => {
+    let addLineUpEnabled = false;
+    const lineupKeys = Object.keys(this.state.chosenPlayersTable).length;
+    console.log(lineupKeys);
+    if (lineupKeys > 2) {
+      addLineUpEnabled = true;
+    }
+    this.setState({ addLineUpEnabled });
+  }
 
   handleTestMicro = () => {
     const testId = 136053129;
@@ -295,17 +306,22 @@ class App extends Component {
   }
 
   // Chosen lineups table
-  handleAddNewPage = () => {
-    const chosenPlayersTable = this.state.chosenPlayersTable;
-    const newPage = Object.keys(chosenPlayersTable).length;
-    chosenPlayersTable[String(newPage)] = {
+  handleAddNewPage = async () => {
+    const curChosenPlayersTable = this.state.chosenPlayersTable;
+    const newPage = Object.keys(curChosenPlayersTable).length;
+    if (newPage > 2) {
+      window.alert('The maximum number of allowed lineupes is 3.');
+      return;
+    }
+    curChosenPlayersTable[String(newPage)] = {
       rows: JSON.parse(JSON.stringify(blankRow)),
       hidden: true,
       index: newPage,
       capRemaining: salaryCap
     }
     this.handleChangeLineUpPage(newPage);
-    this.setState({ chosenPlayersTable })
+    await this.promisedSetState({ chosenPlayersTable: curChosenPlayersTable })
+    this.handleDisableAddNewLineup();
   }
 
   // Change the line up page by choosing which lineup and Sal remaining we are showing.
@@ -398,29 +414,29 @@ class App extends Component {
 
   // https://mui.com/material-ui/react-alert/
   // Handle Resetting all lineueps
-  handleResetAllLineUps = () => {
-    const chosenPlayersTable = JSON.parse(JSON.stringify(baseChosenPlayers));
+  handleResetAllLineUps = async () => {
+    const cleanedTable = JSON.parse(JSON.stringify(baseChosenPlayers));
     const activePlayersTable = 0;
     const justDeleted = this.state.chosenPlayersTable;
     const activeSalaryRemaining = salaryCap;
     this.setState({ activeSalaryRemaining })
     this.setState({ justDeleted })
-    this.setState({ chosenPlayersTable });
+    await this.promisedSetState({ chosenPlayersTable: cleanedTable });
     this.setState({ activePlayersTable });
+    this.handleDisableAddNewLineup();
   }
 
   // Handle Deleting 1 Lineuo
-  handleDeleteOneLineup = () => {
+  handleDeleteOneLineup = async () => {
     let activePlayersTable = this.state.activePlayersTable;
     const curChosenTable = this.state.chosenPlayersTable;
     const countLineUps = Object.keys(curChosenTable).length;
-    console.log(curChosenTable);
     if (countLineUps < 2) {
       window.alert('Cannot delete your last lineup.');
       return;
     }
 
-    const chosenPlayersTable = {};
+    const updatedPlayersTable = {};
     let pointer = 0;
     for (let i=0; i < countLineUps; i++) {
 
@@ -429,7 +445,7 @@ class App extends Component {
         this.setState({ justDeleted })
         continue;
       } else {
-        chosenPlayersTable[String(pointer)] = {
+        updatedPlayersTable[String(pointer)] = {
           rows: JSON.parse(JSON.stringify(curChosenTable[String(i)]['rows'])),
           hidden: true,
           index: pointer,
@@ -444,36 +460,38 @@ class App extends Component {
       activePlayersTable = 0;
     }
 
-    chosenPlayersTable[String(activePlayersTable)]['hidden'] = false;
-    const activeSalaryRemaining = chosenPlayersTable[activePlayersTable].capRemaining;
+    updatedPlayersTable[String(activePlayersTable)]['hidden'] = false;
+    const activeSalaryRemaining = updatedPlayersTable[activePlayersTable].capRemaining;
     this.setState({ activeSalaryRemaining })
     this.setState({ activePlayersTable });
-    this.setState({ chosenPlayersTable });
+    await this.promisedSetState({ chosenPlayersTable: updatedPlayersTable });
+    this.handleDisableAddNewLineup();
   }
 
   // Handle Undo 1 Most Recent Delete
-  handleUndoDelete = () => {
+  handleUndoDelete = async () => {
     bootbox.alert("Your message here…");
-    const chosenPlayersTable = this.state.justDeleted;
-    if (chosenPlayersTable === null) {
+    const restoredTable = this.state.justDeleted;
+    if (restoredTable === null) {
       window.alert('Nothing to restore, only the single most recent deletion is stored.');
       return;
     }
 
     let activePlayersTable = 0;
-    for (let i=0; i < Object.keys(chosenPlayersTable).length; i++) {
-      if (chosenPlayersTable[i]['hidden'] === false) {
+    for (let i=0; i < Object.keys(restoredTable).length; i++) {
+      if (restoredTable[i]['hidden'] === false) {
         activePlayersTable = i;
         break;
       }
     }
 
     const justDeleted = null;
-    const activeSalaryRemaining = chosenPlayersTable[activePlayersTable].capRemaining;
+    const activeSalaryRemaining = restoredTable[activePlayersTable].capRemaining;
     this.setState({ activeSalaryRemaining })
     this.setState({ activePlayersTable });
-    this.setState({ chosenPlayersTable });
-    this.setState({ justDeleted });
+    await this.promisedSetState({ chosenPlayersTable: restoredTable });
+    await this.promisedSetState({ justDeleted: null });
+    this.handleDisableAddNewLineup();
   }
 
   // Create proper data structure for rows

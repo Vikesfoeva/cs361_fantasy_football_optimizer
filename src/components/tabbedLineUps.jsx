@@ -35,7 +35,7 @@ class BasicTabs extends Component {
                   )
                 })
               }
-              <Tab label={<AddIcon />} onClick={() => this.props.addNewTab()} />
+              <Tab label={<AddIcon />} onClick={() => this.props.addNewTab()} disabled={this.props.addLineUpEnabled}/>
             </Tabs>
           </Box>
           {
