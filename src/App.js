@@ -18,6 +18,8 @@ import { act } from 'react-dom/test-utils';
 import $ from 'jquery';
 import 'bootstrap';
 import bootbox from 'bootbox';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 
 // TOdo need to find how to click change the different tabs of the basic grid
 // When a lineup is deleted or all are reset the point get's misaligned
@@ -35,8 +37,6 @@ import bootbox from 'bootbox';
 // Implement an algorithim to do basic roster optimization
 
 // DOwnload CSV fucntion
-
-// Add salary counter to show ho wmuch salary in this lineup is left
 
 // Add Captain functionality - update algorithim, call out the captain row
 
@@ -60,12 +60,16 @@ const blankRow = [
   blankPlayer, 
   blankPlayer, 
   blankPlayer
-]
+];
+
+const salaryCap = 50000
+
 const baseChosenPlayers = {
   "0" :
   {rows: JSON.parse(JSON.stringify(blankRow)),
     hidden: false,
-    index: 0
+    index: 0,
+    capRemaining: salaryCap
   }
 }
 
@@ -83,6 +87,7 @@ class App extends Component {
     },
     chosenPlayersTable: JSON.parse(JSON.stringify(baseChosenPlayers)),
     activePlayersTable: 0,
+    activeSalaryRemaining: 50000,
     justDeleted: null
   } 
   constructor() {
@@ -108,13 +113,29 @@ class App extends Component {
         <React.Fragment>
           <Typography variant='h2'>Fantasy Football Roster Optimization Tool</Typography>
           
-          {/* <WeekSelector /> */}
-          <GameSelector 
-            gamesAvail={this.state.games}
-            updateGameSelection={this.handleUpdateGame}
-          />
-          <Button variant='contained' color='success' onClick={this.handleLearnMore}>Learn More <HelpIcon /></Button>
-          <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
+          {/* Information Grid - Game Picker, Help, Optimizer */}
+          <Grid container spacing={2}>
+            <Grid xs={2}>
+              <GameSelector 
+              gamesAvail={this.state.games}
+              updateGameSelection={this.handleUpdateGame}
+               />
+            </Grid>
+            <Grid xs={2}>
+              <Button variant='contained' color='success' onClick={this.handleLearnMore}>Learn More <HelpIcon /></Button>
+            </Grid>
+            <Grid xs={2}>
+              <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
+            </Grid>
+            <Grid xs={1}></Grid>
+            <Grid xs={3}>
+              <Typography variant='h5' align='left'>
+                {"Salary Remaining $" + String(this.state.activeSalaryRemaining.toLocaleString())} 
+              </Typography>
+            </Grid>
+          </Grid>
+
+          {/* Player Grids */}
           <Grid container spacing={2}>
             <Grid xs={6}>
               <AllPlayersTable 
@@ -126,7 +147,7 @@ class App extends Component {
                 unlockPlayer = {this.handleUnlockingPlayer}
               />
             </Grid>
-            {/* <Grid xs={1.5}>
+            {/* <Grid xs={1}>
               <Grid container spacing={2}>
                 <Grid xs={5}>
                   <ClearIcon />
@@ -280,12 +301,14 @@ class App extends Component {
     chosenPlayersTable[String(newPage)] = {
       rows: JSON.parse(JSON.stringify(blankRow)),
       hidden: true,
-      index: newPage
+      index: newPage,
+      capRemaining: salaryCap
     }
     this.handleChangeLineUpPage(newPage);
     this.setState({ chosenPlayersTable })
   }
 
+  // Change the line up page by choosing which lineup and Sal remaining we are showing.
   handleChangeLineUpPage = (inputKey) => {
     const chosenPlayersTable = this.state.chosenPlayersTable;
     const pageKeys = Object.keys(chosenPlayersTable); 
@@ -298,15 +321,19 @@ class App extends Component {
         chosenPlayersTable[thisPage].hidden = true;
       }
     }
-    this.setState({ chosenPlayersTable })
+    const activeSalaryRemaining = chosenPlayersTable[inputKey].capRemaining;
+    this.setState({ activeSalaryRemaining })
+    this.setState({ chosenPlayersTable });
   }
 
   // Adding a player to a lineup
   handleAddPlayerToLineup = (inputPlayer) => {
     const curPage = this.state.activePlayersTable;
     const chosenPlayersTable = this.state.chosenPlayersTable;
+    let activeSalaryRemaining = this.state.activeSalaryRemaining;
     let isRostered = false;
     let firstOpen = -1;
+
     for (let i=0; i < chosenPlayersTable[curPage].rows.length; i++) {
       if (chosenPlayersTable[curPage]['rows'][i]['name'] === inputPlayer['name']) {
         isRostered = true;
@@ -315,10 +342,18 @@ class App extends Component {
         firstOpen = i;
       }
     }
-    if (!isRostered && firstOpen > -1 && firstOpen < 6) {
+    // Ensure we are not double rostering, we have a space, and that we have salary
+    if (!isRostered && firstOpen > -1 && firstOpen < 6 && activeSalaryRemaining >= inputPlayer['salary']) {
+      const thisSal = inputPlayer['salary']
       chosenPlayersTable[curPage]['rows'][firstOpen] = inputPlayer;
+
+      chosenPlayersTable[curPage]['capRemaining'] = activeSalaryRemaining - thisSal;
+      activeSalaryRemaining = activeSalaryRemaining - thisSal;
+
+      this.setState({ activeSalaryRemaining });
       this.setState({ chosenPlayersTable });
     }
+
   }
 
   // Handle locking a player into an optimized lineup
@@ -355,6 +390,9 @@ class App extends Component {
         break;
       }
     }
+    chosenPlayersTable[curPage].capRemaining = chosenPlayersTable[curPage].capRemaining + inputPlayer['salary'];
+    let activeSalaryRemaining = this.state.activeSalaryRemaining + inputPlayer['salary'];
+    this.setState({ activeSalaryRemaining });
     this.setState({ chosenPlayersTable });
   }
 
@@ -364,6 +402,8 @@ class App extends Component {
     const chosenPlayersTable = JSON.parse(JSON.stringify(baseChosenPlayers));
     const activePlayersTable = 0;
     const justDeleted = this.state.chosenPlayersTable;
+    const activeSalaryRemaining = salaryCap;
+    this.setState({ activeSalaryRemaining })
     this.setState({ justDeleted })
     this.setState({ chosenPlayersTable });
     this.setState({ activePlayersTable });
@@ -392,7 +432,8 @@ class App extends Component {
         chosenPlayersTable[String(pointer)] = {
           rows: JSON.parse(JSON.stringify(curChosenTable[String(i)]['rows'])),
           hidden: true,
-          index: pointer
+          index: pointer,
+          capRemaining: curChosenTable[String(i)].capRemaining
         }
       pointer = pointer + 1;
       }
@@ -404,7 +445,8 @@ class App extends Component {
     }
 
     chosenPlayersTable[String(activePlayersTable)]['hidden'] = false;
-
+    const activeSalaryRemaining = chosenPlayersTable[activePlayersTable].capRemaining;
+    this.setState({ activeSalaryRemaining })
     this.setState({ activePlayersTable });
     this.setState({ chosenPlayersTable });
   }
@@ -427,6 +469,8 @@ class App extends Component {
     }
 
     const justDeleted = null;
+    const activeSalaryRemaining = chosenPlayersTable[activePlayersTable].capRemaining;
+    this.setState({ activeSalaryRemaining })
     this.setState({ activePlayersTable });
     this.setState({ chosenPlayersTable });
     this.setState({ justDeleted });
