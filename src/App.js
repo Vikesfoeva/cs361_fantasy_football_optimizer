@@ -36,8 +36,6 @@ import Stack from '@mui/material/Stack';
 
 // Implement an algorithim to do basic roster optimization
 
-// DOwnload CSV fucntion
-
 // Add Captain functionality - update algorithim, call out the captain row
 
 // Allow user to sort the all players table
@@ -183,6 +181,7 @@ class App extends Component {
                 resetAllLineUps = {this.handleResetAllLineUps}
                 deleteOneLineup = {this.handleDeleteOneLineup}
                 undoDelete = {this.handleUndoDelete}
+                downloadButton = {this.handleDownloadCSV}
               />
             </Grid>
           </Grid>
@@ -493,6 +492,54 @@ class App extends Component {
     await this.promisedSetState({ justDeleted: null });
     this.handleDisableAddNewLineup();
   }
+
+  // Handle Download CSV File
+  // https://www.geeksforgeeks.org/how-to-create-and-download-csv-file-in-javascript/
+  handleDownloadCSV = () => {
+    const data = [];
+    const lineUpKeys = Object.keys(this.state.chosenPlayersTable);
+    for (let i=0; i < lineUpKeys.length; i++) {
+      for (let j=0; j < 6; j++) {
+        const thisPlayer = this.state.chosenPlayersTable[String(i)].rows[j];
+        let thisName = thisPlayer['name'];
+        if (thisName === '') {
+          thisName = "Not Chosen";
+        }
+        data.push({
+          lineupNumber: '"' + String(i + 1) + '"',
+          name: '"' + thisName + '"', 
+          points: '"' + thisPlayer['points'] + '"', 
+          position: '"' + thisPlayer['position'] + '"', 
+          salary: '"' + thisPlayer['salary'] + '"', 
+          team: '"' + thisPlayer['team'] + '"', 
+          locked: '"' + thisPlayer['locked'] + '"', 
+          bannedFromLineup: '"' + thisPlayer['bannedFromLineup'] + '"'
+        })
+      }
+    }
+    const csvdata = this.handleCSVmaker(data);
+    this.handleDownload(csvdata);
+  }
+
+  handleDownload = function (data) { 
+    const blob = new Blob([data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.setAttribute('href', url)
+    a.setAttribute('download', 'download.csv');
+    a.click()
+  }
+
+  handleCSVmaker = function (data) {
+    const csvRows = [];
+    const headers = Object.keys(data[0]);
+    csvRows.push(headers.join(','));
+
+    for (let i=0; i < data.length; i++) {
+      csvRows.push('\n' + Object.values(data[i]).join(','));
+    }
+    return csvRows;
+}
 
   // Create proper data structure for rows
   handleCreateData = (name, position, team, points, salary) => {

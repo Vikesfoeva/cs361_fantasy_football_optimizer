@@ -45,7 +45,14 @@ class ButtonGrid extends Component {
                 </Button>
           </Grid>
           <Grid xs={6}>
-              <Button variant="contained" color='secondary' endIcon={<DownloadIcon />}>Export Line Ups</Button>
+              <Button 
+                variant="contained" 
+                color='secondary' 
+                endIcon={<DownloadIcon />}
+                onClick={() => this.props.downloadButton()}
+              >
+                  Export Line Ups
+              </Button>
           </Grid>
         </Grid>
       </Box>
