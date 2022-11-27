@@ -25,7 +25,7 @@ import Stack from '@mui/material/Stack';
 
 // TOdo Show the weather where the games is
 
-// Todo build a basic algorithim that includes locking / banning players (make sure their total locks are not above salary)
+// Make algorithim consume the banning & locking
 
 // Improve the key legend for telling a user what does what
 
@@ -101,10 +101,10 @@ class App extends Component {
                />
             </Grid>
             <Grid xs={2}>
-              <Button variant='contained' color='success' onClick={this.handleLearnMore}>Learn More <HelpIcon /></Button>
+              <Button variant='contained' color='success' endIcon={<HelpIcon />} onClick={this.handleLearnMore}>Learn More</Button>
             </Grid>
             <Grid xs={2}>
-              <Button variant="contained" color='success' endIcon={<AutoModeIcon />}>Generate Line Ups</Button>
+              <Button variant="contained" color='success' endIcon={<AutoModeIcon />} onClick={this.handleOptimizationAlgorithim}>Generate Line Ups</Button>
             </Grid>
             <Grid xs={1}></Grid>
             <Grid xs={3}>
@@ -186,7 +186,6 @@ class App extends Component {
   handleDisableAddNewLineup = async () => {
     let addLineUpEnabled = false;
     const lineupKeys = Object.keys(this.state.chosenPlayersTable).length;
-    console.log(lineupKeys);
     if (lineupKeys > 2) {
       addLineUpEnabled = true;
     }
@@ -533,6 +532,82 @@ class App extends Component {
   handleCreateData = (name, position, team, points, salary) => {
     return { name, position, team, points, salary };
   }
-}
+
+  handleOptimizationAlgorithim = () => {
+    const availPlayers = JSON.parse(JSON.stringify(this.state.playersTable.rows));
+    const availCaptains = [];
+
+    // Build captains array
+    for (let i=0; i < availPlayers.length; i++) {
+      const thisCaptain = JSON.parse(JSON.stringify(availPlayers[i]));
+      thisCaptain['salary'] = thisCaptain['salary'] * 1.5;
+      thisCaptain['points'] = thisCaptain['points'] * 1.5;
+      thisCaptain['isCaptain'] = true;
+      availCaptains.push(thisCaptain);
+    };
+
+    const rosterOptions = [{rows:[], projection: 0}];
+    for (let i=0; i < availCaptains.length; i++) {
+      const thisCap = availCaptains[i];
+      knapSack(salaryCap - thisCap.salary, availPlayers, availPlayers.length, [thisCap], thisCap, thisCap.points, rosterOptions)
+    }
+    
+    const chosenPlayersTable = this.state.chosenPlayersTable;
+    const curPage = this.state.activePlayersTable;
+    const activeSalaryRemaining = rosterOptions[0].capRemaining;
+    chosenPlayersTable[curPage] = {
+      rows: rosterOptions[0].rows,
+      index: curPage,
+      capRemaining: activeSalaryRemaining
+    }
+
+    this.setState({ activeSalaryRemaining });
+    this.setState({ chosenPlayersTable });
+
+  };
+};
+
+// https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/
+function max(a, b){
+  return (a > b) ? a : b;
+};
+
+function knapSack(salRemain, availPlayers, ptr, thisRoster, thisCap, total, rosterOptions){
+
+  if (ptr === 0 || salRemain <= 0 || thisRoster.length === 6) { 
+    if (thisRoster.length === 6) {
+      if (rosterOptions.length > 0 && rosterOptions[0].projection < total) {
+        rosterOptions.shift();
+        rosterOptions.push({
+          rows: thisRoster,
+          projection: total,
+          capRemaining: salRemain
+        })
+      }
+    }
+    return 0;
+  }
+
+  const thisPlayer = availPlayers[ptr-1]
+  const thisSal = thisPlayer.salary;
+  const thisPoint = parseFloat(thisPlayer.points);
+  const regex = new RegExp("[a-zA-Z]");
+
+  if (thisSal > salRemain || thisSal < 1000 || 
+    thisPoint < 1 || thisCap.name === thisPlayer.name ||
+    regex.test(thisPlayer.points) ||
+    thisPlayer.bannedFromLineup === true
+    ) {
+    return knapSack(salRemain, availPlayers, ptr - 1, thisRoster, thisCap, parseFloat(total), rosterOptions);
+
+  } else {
+    const newRoster = JSON.parse(JSON.stringify(thisRoster));
+    newRoster.push(thisPlayer);
+    return max(
+      thisPoint + knapSack(salRemain - thisSal, availPlayers, ptr - 1, newRoster, thisCap, total + thisPoint, rosterOptions),
+      knapSack(salRemain, availPlayers, ptr - 1, thisRoster, thisCap, total, rosterOptions)
+    );
+  }
+};
 
 export default App;
