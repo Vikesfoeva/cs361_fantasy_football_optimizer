@@ -21,7 +21,6 @@ import bootbox from 'bootbox';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 
-// TOdo need to find how to click change the different tabs of the basic grid
 // When a lineup is deleted or all are reset the point get's misaligned
 
 // ToDo Fix how the games show up slowly - can I reorganize how the server handles things?
@@ -38,13 +37,10 @@ import Stack from '@mui/material/Stack';
 
 // Add Captain functionality - update algorithim, call out the captain row
 
-// Allow user to sort the all players table
-// Set default sort to descending total points
 // To do - some players are showing a rank in their totals points section
 
 // standardize button sizing, height, and spacing to make the UI look more uniform
 
-// NIce to have - drag and drop
 // Nice to have - indicate in the left table if a player is already marked as chose in the right table
 
 const baseUrl = window.location.href;
@@ -282,6 +278,7 @@ class App extends Component {
       thisData['bannedFromLineup'] = false;
       newRows.push(thisData);
     }
+    newRows.sort((ele1, ele2) => {return ele2.salary - ele1.salary});
     return newRows;
   }
 
