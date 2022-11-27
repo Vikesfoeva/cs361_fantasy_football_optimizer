@@ -27,6 +27,10 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 app.get('/api/contests', async (req, res) => {
   const contestsURL = 'https://www.draftkings.com/lobby/getcontests?sport=NFL';
   request(contestsURL, { json: true }, async (err, response, body) => {
@@ -66,13 +70,26 @@ function parseMicroServiceResponse(allPlayersObject) {
     if (thisKey in res && res[thisKey]['salary'] > thisPlayer['salary']) {
       res[thisKey]['salary'] = thisPlayer['salary']
     } else {
+      let thisPoints = 0;
+      let thisRank = '';
+      const playerVal1 = thisPlayer['draftStatAttributes'][0]['value'];
+      const playerVal2 = thisPlayer['draftStatAttributes'][1]['value'];
+      const regex = new RegExp("[a-zA-Z]");
+      if (regex.test(playerVal1)) {
+        thisPoints = 0;
+        thisRank = playerVal1;
+      } else {
+        thisPoints = playerVal1;
+        thisRank = playerVal2;
+      }
+
       res[thisKey] = {
         firstName: thisPlayer['firstName'],
         lastName: thisPlayer['lastName'],
         displayName: thisPlayer['displayName'],
         salary: thisPlayer['salary'],
-        projectedPoints: thisPlayer['draftStatAttributes'][0]['value'],
-        opponentRank: thisPlayer['draftStatAttributes'][1]['value'],
+        projectedPoints: thisPoints,
+        opponentRank: thisRank,
         quality: thisPlayer['draftStatAttributes'][1]['quality'],
         teamAbbreviation: thisPlayer['teamAbbreviation'],
         position: thisPlayer['position'],
@@ -82,10 +99,6 @@ function parseMicroServiceResponse(allPlayersObject) {
   };
   return res;
 };
-
-app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
 
 // This endpoint returns the unlocked contests for the current week
 function parseContests(inputContests) {

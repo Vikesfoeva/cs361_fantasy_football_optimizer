@@ -15,10 +15,6 @@ import LearnMoreModal from './components/learnMoreModal';
 
 // TOdo Show the weather where the games is
 
-// Improve the key legend for telling a user what does what
-
-// To do - some players are showing a rank in their totals points section
-
 // standardize button sizing, height, and spacing to make the UI look more uniform
 
 const blankPlayer = {
@@ -188,7 +184,7 @@ class App extends Component {
     playersTable.rows = newRows;
     this.setState({ playersTable });
   };
-  
+
   // Handle Gather Players
   handleGatherAllPlayers = (totalContests) => {
     const playersBank = {}

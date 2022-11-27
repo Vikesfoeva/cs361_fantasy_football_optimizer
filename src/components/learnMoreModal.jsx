@@ -15,7 +15,7 @@ class LearnMoreModal extends Component {
         };
       }
     render() { 
-        const style = {
+        const modalStyle = {
             position: 'absolute',
             top: '50%',
             left: '50%',
@@ -48,7 +48,7 @@ class LearnMoreModal extends Component {
                 }}
                 >
                     <Fade in={this.state.open}>
-                        <Box sx={style}>
+                        <Box sx={modalStyle}>
                             <Typography id="transition-modal-title" variant="h6" component="h2" align='center'>
                                 Learn More
                             </Typography>
