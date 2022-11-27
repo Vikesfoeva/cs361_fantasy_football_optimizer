@@ -23,11 +23,7 @@ import Stack from '@mui/material/Stack';
 
 // When a lineup is deleted or all are reset the point get's misaligned
 
-// ToDo Fix how the games show up slowly - can I reorganize how the server handles things?
-
 // TOdo Show the weather where the games is
-
-// Todo fix sbowing which games snhow up - I seem to be missing some
 
 // Todo build a basic algorithim that includes locking / banning players (make sure their total locks are not above salary)
 
@@ -87,16 +83,10 @@ class App extends Component {
     super();
   }
 
-  // More performant once in DB
   async componentDidMount() {
-    const totalGames = await this.handleFetchContests();
-    console.log(totalGames);
-    const gameKeys = [];
-    for (let i=0;  i < totalGames.length; i++) {
-      gameKeys.push(totalGames[i]['id']);
-    }
-    await this.handleGatherAllPlayers(gameKeys);
-    await this.promisedSetState({ games: totalGames})
+    const fetchContestResponse = await this.handleFetchContests();
+    this.handleGatherAllPlayers(fetchContestResponse);
+    await this.promisedSetState({ games: fetchContestResponse.games})
   }
 
   render() { 
@@ -207,16 +197,6 @@ class App extends Component {
     this.setState({ addLineUpEnabled });
   }
 
-  handleTestMicro = () => {
-    const testId = 136053129;
-    const url = baseUrl + "api/Contests/" + String(testId);
-    fetch(url)
-    .then(res => res.json())
-    .then((out) => {
-      console.log(out);
-    });
-  }
-
   // Receive the ID from the game slector dropdown and update State
   handleUpdateGame = (inputChosenId) => {
     const selectedGame = inputChosenId;
@@ -243,18 +223,13 @@ class App extends Component {
   };
 
   // Handle Gather Players
-  handleGatherAllPlayers = async (gameIds) => {
-    const thisBank = {}
-    for (let i=0; i < gameIds.length; i++) {
-      const thisID = gameIds[i];
-      const url = baseUrl + "api/Contests/" + String(thisID);
-      await fetch(url)
-      .then(res => res.json())
-      .then((out) => {
-        thisBank[thisID] = this.handlePopulateRows(out);
-      });
-    };
-    await this.promisedSetState({ playersBank: thisBank})
+  handleGatherAllPlayers = (totalContests) => {
+    const playersBank = {}
+    for (let i=0; i < totalContests.games.length; i++) {
+      const thisId = totalContests.games[i].id;
+      playersBank[thisId] = this.handlePopulateRows(totalContests.players[thisId]);
+    }
+    this.setState({ playersBank });
   }
 
   // Populate table with players

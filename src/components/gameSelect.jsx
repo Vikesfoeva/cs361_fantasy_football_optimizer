@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { FormControl,InputLabel, Select, MenuItem } from '@mui/material';
 
 class GameSelector extends Component {
+
     render() { 
         return (
             <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
@@ -15,7 +16,7 @@ class GameSelector extends Component {
             >
             {this.props.gamesAvail.map((game) => 
                 <MenuItem value={game.id} key={game.id}>
-                    {game.friendlyName}
+                    {game.friendly}
                 </MenuItem>
             )}
             </Select>

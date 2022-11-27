@@ -29,33 +29,31 @@ app.use(function (req, res, next) {
 
 app.get('/api/contests', async (req, res) => {
   const contestsURL = 'https://www.draftkings.com/lobby/getcontests?sport=NFL';
-  request(contestsURL, { json: true }, (err, response, body) => {
+  request(contestsURL, { json: true }, async (err, response, body) => {
     if (err) { return console.log(err); }
-    const output = parseContests(response.body.Contests);
-    res.send(JSON.stringify(output));
+    const output = {};
+    output['games'] = parseContests(response.body.Contests);
+    const players = {};
+    let counter = 0;
+    for (let i=0; i < output.games.length; i++) {
+      const gameID = output.games[i].id;
+      const microServiceURL = `https://gk361ms.deta.dev/gameid/${gameID}`;
+      axios.get(microServiceURL)
+      .then(response => {
+
+        players[String(gameID)] = parseMicroServiceResponse(response.data);
+        counter = counter + 1;
+
+        if (counter === output.games.length) {
+          output['players'] = players;
+          res.send(JSON.stringify(output));
+        }
+
+      })
+      .catch(error => {console.log(error)})
+    }
   });
 });
-
-app.get('/api/contests/:constest_id', async (req, res) => {
-  // Leverage the partner's microservce to get all the players for a given game
-  const thisId = req.params.constest_id;
-  const allPlayersObject = await partnerMicroService(thisId);
-  const usablePlayerObject = parseMicroServiceResponse(allPlayersObject);
-  res.send(JSON.stringify(usablePlayerObject));
-});
-
-async function partnerMicroService(gameID) {
-  // Call the microservice to receive the players in this game
-  const microServiceURL = `https://gk361ms.deta.dev/gameid/${gameID}`;
-  const totalPlayers = await axios.get(microServiceURL)
-  .then(response => {
-    return response.data;
-  })
-  .catch(error => {
-    console.log(error)
-  })
-  return totalPlayers;
-}
 
 function parseMicroServiceResponse(allPlayersObject) {
   // Creates a condensed more manageable data object to send back to the client
@@ -89,19 +87,30 @@ app.get('/', function(req, res) {
 
 // This endpoint returns the unlocked contests for the current week
 function parseContests(inputContests) {
-  const outputContests = [];
+  const outputCons = [];
+  const uniqueCons = [];
   for (let i=0; i < inputContests.length; i++) {
-    const thisContest = inputContests[i];
-    if (thisContest['gameType'] === 'Showdown Captain Mode' && thisContest['n'].includes('Casual NFL Showdown $10 Double Up ')) {
-      let friendlyName = thisContest['n'].split("(")[1];
-      friendlyName = friendlyName.split(")")[0];
-      outputContests.push({
-        id: thisContest['id'],
-        fullName: thisContest['n'],
-        date: thisContest['sdstring'],
-        friendlyName: friendlyName
-      });
+    const thisCon = inputContests[i];
+    if (thisCon['gameType'] !== 'Showdown Captain Mode') {
+      continue;
     }
+    let friendly = thisCon['n'].split("(");
+    if (friendly.length > 2) {
+      // Parse out contest names we do not want
+      continue;
+    }
+    friendly = friendly[1]
+    friendly = friendly.split(")")[0];
+    if (uniqueCons.includes(friendly)) {
+      continue;
+    }
+    uniqueCons.push(friendly)
+    outputCons.push({
+      id: thisCon['id'],
+      fullName: thisCon['n'],
+      date: thisCon['sdstring'],
+      friendly: friendly
+    });
   }
-  return outputContests;
+  return outputCons;
 }
