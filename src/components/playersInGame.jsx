@@ -7,11 +7,12 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import ClearIcon from '@mui/icons-material/Clear';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AddIcon from '@mui/icons-material/Add';
 import { IconButton } from '@mui/material';
+import BlockIcon from '@mui/icons-material/Block';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 class AllPlayersTable extends Component {
   
@@ -53,7 +54,10 @@ class AllPlayersTable extends Component {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => {
                   return (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={row.code} style={{height: 33}}>
+                    <TableRow hover role="checkbox" tabIndex={-1} 
+                      key={row.code} 
+                      style={{height: 33}}
+                    >
                       {columns.map((column) => {
                         const value = row[column.id];
                         if (column.id === 'actions') {
@@ -66,20 +70,21 @@ class AllPlayersTable extends Component {
                           } else {
                             lockingIcon = this.handleUnlockingIcon(row);
                           }
+
+                          let banningIcon;
+                          if (!row.bannedFromLineup) {
+                            banningIcon = this.handleUnBanningIcon(row);
+                          } else {
+                            banningIcon = this.handleBanningIcon(row);
+                          }
                           
                           return (
                             <TableCell key={column.id} align={column.align}>
-
                               <IconButton sx={{ "&:hover": { color: "green" }}}>
                                   <AddIcon onClick={() => addPlayerToLineup(row)}/>
                                 </IconButton>
-
-                              <IconButton sx={{ "&:hover": { color: "red" }}}>
-                                <ClearIcon />
-                              </IconButton>
-
+                              {banningIcon}
                               {lockingIcon}
-
                             </TableCell>
                         )} 
                         else {
@@ -110,6 +115,7 @@ class AllPlayersTable extends Component {
       </Paper>
     );
   }
+  // Handle locking or unlocking the player into the opimization
   handleLockingIcon = (row) => {
     return(
       <IconButton sx={{ "&:hover": { color: "blue" }}}>
@@ -123,7 +129,23 @@ class AllPlayersTable extends Component {
         <LockIcon onClick={() => this.props.unlockPlayer(row)} />
       </IconButton> 
     )
-    }
+  }
+
+  // Handle Banning or Unbanning a player into the Lineup
+  handleBanningIcon = (row) => {
+    return(
+      <IconButton sx={{ "&:hover": { color: "red" }}}>
+        <BlockIcon onClick={() => this.props.banFromLineup(row)} />
+      </IconButton>
+    )
+  }
+  handleUnBanningIcon = (row) => {
+    return(
+      <IconButton sx={{ "&:hover": { color: "red" }}}>
+        <RadioButtonUncheckedIcon onClick={() => this.props.banFromLineup(row)} />
+      </IconButton>
+    )
+  }
 }
  
 export default AllPlayersTable;

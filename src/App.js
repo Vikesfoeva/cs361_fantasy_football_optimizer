@@ -25,7 +25,7 @@ import Stack from '@mui/material/Stack';
 
 // TOdo Show the weather where the games is
 
-// Make algorithim consume the banning & locking
+// Make algorithim consume the locking
 
 // Improve the key legend for telling a user what does what
 
@@ -33,10 +33,19 @@ import Stack from '@mui/material/Stack';
 
 // standardize button sizing, height, and spacing to make the UI look more uniform
 
-// Nice to have - indicate in the left table if a player is already marked as chose in the right table
-
 const baseUrl = window.location.href;
-const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none", locked: false, bannedFromLineup: false, isCaptain: false};
+const blankPlayer = {
+  name: "", 
+  points: "", 
+  position: "", 
+  salary: "", 
+  team: "", 
+  display: "none", 
+  locked: false, 
+  bannedFromLineup: false, 
+  isCaptain: false
+};
+
 const blankRow = [
   blankPlayer, 
   blankPlayer, 
@@ -53,7 +62,8 @@ const baseChosenPlayers = {
   {rows: JSON.parse(JSON.stringify(blankRow)),
     hidden: false,
     index: 0,
-    capRemaining: salaryCap
+    capRemaining: salaryCap,
+    totalProjected: 0
   }
 }
 
@@ -72,6 +82,7 @@ class App extends Component {
     chosenPlayersTable: JSON.parse(JSON.stringify(baseChosenPlayers)),
     activePlayersTable: 0,
     activeSalaryRemaining: 50000,
+    activeProjectedPoints: 0,
     justDeleted: null,
     addLineUpEnabled: false
   } 
@@ -107,9 +118,14 @@ class App extends Component {
               <Button variant="contained" color='success' endIcon={<AutoModeIcon />} onClick={this.handleOptimizationAlgorithim}>Generate Line Ups</Button>
             </Grid>
             <Grid xs={1}></Grid>
-            <Grid xs={3}>
-              <Typography variant='h5' align='left'>
+            <Grid xs={2.5}>
+              <Typography variant='h6' align='left'>
                 {"Salary Remaining $" + String(this.state.activeSalaryRemaining.toLocaleString())} 
+              </Typography>
+            </Grid>
+            <Grid xs={2.5}>
+              <Typography variant='h6' align='left'>
+                {"Projected Points: " + String(this.state.activeProjectedPoints)} 
               </Typography>
             </Grid>
           </Grid>
@@ -124,6 +140,7 @@ class App extends Component {
                 addPlayerToLineup={this.handleAddPlayerToLineup}
                 lockInPlayer = {this.handleLockingPlayer}
                 unlockPlayer = {this.handleUnlockingPlayer}
+                banFromLineup = {this.handleLineUpBan}
               />
             </Grid>
             {/* <Grid xs={1}>
@@ -347,11 +364,27 @@ class App extends Component {
       }
 
       activeSalaryRemaining = activeSalaryRemaining - thisSal;
+      let activeProjectedPoints = this.state.activeProjectedPoints + chosenPlayersTable[curPage]['rows'][firstOpen]['points'];
+      chosenPlayersTable[curPage].totalProjected = activeProjectedPoints;
 
+      this.setState({ activeProjectedPoints });
       this.setState({ activeSalaryRemaining });
       this.setState({ chosenPlayersTable });
     }
 
+  }
+
+  // Handle banning a player from a lineup
+  handleLineUpBan = (inputPlayer) => {
+    const playersTable = this.state.playersTable;
+    for (let i=0; i < playersTable.rows.length; i++) {
+      if (playersTable.rows[i]['name'] === inputPlayer['name']) {
+        const curState = playersTable.rows[i]['bannedFromLineup'];
+        playersTable.rows[i]['bannedFromLineup'] = !curState;
+        break;
+      }
+    }
+    this.setState({ playersTable })
   }
 
   // Handle locking a player into an optimized lineup
@@ -393,6 +426,12 @@ class App extends Component {
     let thisSal = inputPlayer['salary'];
     chosenPlayersTable[curPage].capRemaining = chosenPlayersTable[curPage].capRemaining + thisSal;
     let activeSalaryRemaining = this.state.activeSalaryRemaining + thisSal;
+
+    let activeProjectedPoints = this.state.activeProjectedPoints - inputPlayer['points'];
+    chosenPlayersTable[curPage].totalProjected = activeProjectedPoints;
+
+    this.setState({ activeProjectedPoints });
+
     this.setState({ activeSalaryRemaining });
     this.setState({ chosenPlayersTable });
   }
@@ -404,8 +443,10 @@ class App extends Component {
     const activePlayersTable = 0;
     const justDeleted = this.state.chosenPlayersTable;
     const activeSalaryRemaining = salaryCap;
-    this.setState({ activeSalaryRemaining })
-    this.setState({ justDeleted })
+    const activeProjectedPoints = 0;
+    this.setState({ activeProjectedPoints });
+    this.setState({ activeSalaryRemaining });
+    this.setState({ justDeleted });
     await this.promisedSetState({ chosenPlayersTable: cleanedTable });
     this.setState({ activePlayersTable });
     this.handleDisableAddNewLineup();
@@ -447,6 +488,9 @@ class App extends Component {
 
     updatedPlayersTable[String(activePlayersTable)]['hidden'] = false;
     const activeSalaryRemaining = updatedPlayersTable[activePlayersTable].capRemaining;
+    let activeProjectedPoints = updatedPlayersTable[activePlayersTable].totalProjected;
+
+    this.setState({ activeProjectedPoints });
     this.setState({ activeSalaryRemaining })
     this.setState({ activePlayersTable });
     await this.promisedSetState({ chosenPlayersTable: updatedPlayersTable });
@@ -549,6 +593,9 @@ class App extends Component {
     const rosterOptions = [{rows:[], projection: 0}];
     for (let i=0; i < availCaptains.length; i++) {
       const thisCap = availCaptains[i];
+      if (thisCap.bannedFromLineup) {
+        continue;
+      }
       knapSack(salaryCap - thisCap.salary, availPlayers, availPlayers.length, [thisCap], thisCap, thisCap.points, rosterOptions)
     }
     
@@ -558,9 +605,13 @@ class App extends Component {
     chosenPlayersTable[curPage] = {
       rows: rosterOptions[0].rows,
       index: curPage,
-      capRemaining: activeSalaryRemaining
+      capRemaining: activeSalaryRemaining,
+      totalProjected: rosterOptions[0].projection
     }
 
+    let activeProjectedPoints = chosenPlayersTable[curPage].totalProjected;
+
+    this.setState({ activeProjectedPoints });
     this.setState({ activeSalaryRemaining });
     this.setState({ chosenPlayersTable });
 
