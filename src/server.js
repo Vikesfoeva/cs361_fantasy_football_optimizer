@@ -37,6 +37,8 @@ app.get('/api/contests', async (req, res) => {
     let counter = 0;
     for (let i=0; i < output.games.length; i++) {
       const gameID = output.games[i].id;
+
+      // Calls the microservice
       const microServiceURL = `https://gk361ms.deta.dev/gameid/${gameID}`;
       axios.get(microServiceURL)
       .then(response => {

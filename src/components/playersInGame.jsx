@@ -23,12 +23,12 @@ class AllPlayersTable extends Component {
     const addPlayerToLineup = this.props.addPlayerToLineup;
 
     const columns = [
-      { id: 'name', label: 'Name', minWidth: 80 },
-      { id: 'position', label: 'Position', minWidth: 60, align: 'center' },
-      { id: 'team', label: 'Team', minWidth: 60, align: 'center' },
-      { id: 'points', label: 'Projected Points', minWidth: 60, align: 'center', format: (value) => value.toFixed(2) },
-      { id: 'salary', label: 'Salary', minWidth: 60, align: 'center' },
-      { id: 'actions', label: 'Actions', minWidth: 80, algin: 'center'}
+      { id: 'name', label: 'Name', minWidth: 40 },
+      { id: 'position', label: 'Position', minWidth: 40, align: 'center' },
+      { id: 'team', label: 'Team', minWidth: 40, align: 'center' },
+      { id: 'points', label: 'Projected Points', minWidth: 40, align: 'center', format: (value) => value.toFixed(2) },
+      { id: 'salary', label: 'Salary', minWidth: 40, align: 'center' },
+      { id: 'actions', label: 'Actions', minWidth: 60, algin: 'center'}
     ];
 
     return (

@@ -15,12 +15,13 @@ class ChosenPlayers extends Component {
     const rowsPerPage = 6;
     const rows = this.props.thisPlayerTable;
     const columns = [
-      { id: 'name', label: 'Name', minWidth: 80 },
-      { id: 'position', label: 'Position', minWidth: 60, align: 'right'},
-      { id: 'team', label: 'Team', minWidth: 60, align: 'right'},
-      { id: 'points', label: 'Projected Points', minWidth: 60, align: 'right', format: (value) => value.toFixed(2)},
-      { id: 'salary', label: 'Salary', minWidth: 60, align: 'right'},
-      { id: 'actions', label: 'Actions', minWidth: 80, algin: 'center'}
+      { id: 'type', label: 'Type', minWidth: 40, align: 'right'},
+      { id: 'name', label: 'Name', minWidth: 40 },
+      { id: 'position', label: 'Position', minWidth: 40, align: 'right'},
+      { id: 'team', label: 'Team', minWidth: 40, align: 'right'},
+      { id: 'points', label: 'Projected Points', minWidth: 40, align: 'right', format: (value) => value.toFixed(2)},
+      { id: 'salary', label: 'Salary', minWidth: 40, align: 'right'},
+      { id: 'actions', label: 'Actions', minWidth: 40, algin: 'center'}
     ];
 
     return (
@@ -43,7 +44,7 @@ class ChosenPlayers extends Component {
             <TableBody>
               {rows
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => {
+                .map((row, index) => {
                   return (
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                       {columns.map((column) => {
@@ -64,13 +65,24 @@ class ChosenPlayers extends Component {
                               <ClearIcon sx={{ display: { xs: 'none'} }}/>
                             </TableCell>
                           )
+                        } else if (column.id === 'type' && index === 0) {
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              Captain (1.5x)
+                            </TableCell>
+                          )
+                        } else if (column.id === 'type' && index > 0) {
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              Regular (1x)
+                            </TableCell>
+                          )
                         }
                         else {
                           return (
                             <TableCell key={column.id} align={column.align}>
                               {column.format && typeof value === 'number'
-                                ? column.format(value)
-                                : value}
+                                ? column.format(value) : value}
                             </TableCell>
                           );
                         }

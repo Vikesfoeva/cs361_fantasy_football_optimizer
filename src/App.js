@@ -29,10 +29,6 @@ import Stack from '@mui/material/Stack';
 
 // Improve the key legend for telling a user what does what
 
-// Implement an algorithim to do basic roster optimization
-
-// Add Captain functionality - update algorithim, call out the captain row
-
 // To do - some players are showing a rank in their totals points section
 
 // standardize button sizing, height, and spacing to make the UI look more uniform
@@ -40,7 +36,7 @@ import Stack from '@mui/material/Stack';
 // Nice to have - indicate in the left table if a player is already marked as chose in the right table
 
 const baseUrl = window.location.href;
-const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none", locked: false, bannedFromLineup: false};
+const blankPlayer = {name: "", points: "", position: "", salary: "", team: "", display: "none", locked: false, bannedFromLineup: false, isCaptain: false};
 const blankRow = [
   blankPlayer, 
   blankPlayer, 
@@ -251,6 +247,7 @@ class App extends Component {
       thisData['display'] = 1;
       thisData['locked'] = false;
       thisData['bannedFromLineup'] = false;
+      thisData['isCaptain'] = false;
       newRows.push(thisData);
     }
     newRows.sort((ele1, ele2) => {return ele2.salary - ele1.salary});
@@ -316,9 +313,10 @@ class App extends Component {
   // Adding a player to a lineup
   handleAddPlayerToLineup = (inputPlayer) => {
     const curPage = this.state.activePlayersTable;
-    const chosenPlayersTable = this.state.chosenPlayersTable;
+    const chosenPlayersTable = JSON.parse(JSON.stringify(this.state.chosenPlayersTable));
     let activeSalaryRemaining = this.state.activeSalaryRemaining;
     let isRostered = false;
+    let isTheCaptain = false;
     let firstOpen = -1;
 
     for (let i=0; i < chosenPlayersTable[curPage].rows.length; i++) {
@@ -327,14 +325,28 @@ class App extends Component {
         break;
       } else if (chosenPlayersTable[curPage]['rows'][i]['name'] === '' && firstOpen === -1) {
         firstOpen = i;
+        if (firstOpen === 0) {
+          isTheCaptain = true;
+        }
       }
     }
-    // Ensure we are not double rostering, we have a space, and that we have salary
-    if (!isRostered && firstOpen > -1 && firstOpen < 6 && activeSalaryRemaining >= inputPlayer['salary']) {
-      const thisSal = inputPlayer['salary']
-      chosenPlayersTable[curPage]['rows'][firstOpen] = inputPlayer;
+    // Ensure we are not double rostering, we have a space, and that we have salary.  Additionally check if they are the captain
+    let thisSal = inputPlayer['salary'];
+    if (isTheCaptain) {
+      thisSal = thisSal * 1.5;
+    }
 
+    if (!isRostered && firstOpen > -1 && firstOpen < 6 && activeSalaryRemaining >= thisSal) {
+      
+      chosenPlayersTable[curPage]['rows'][firstOpen] = JSON.parse(JSON.stringify(inputPlayer));
+      chosenPlayersTable[curPage]['rows'][firstOpen]['isCaptain'] = isTheCaptain;
       chosenPlayersTable[curPage]['capRemaining'] = activeSalaryRemaining - thisSal;
+
+      if (isTheCaptain) {
+        chosenPlayersTable[curPage]['rows'][firstOpen]['salary'] = chosenPlayersTable[curPage]['rows'][firstOpen]['salary'] * 1.5;
+        chosenPlayersTable[curPage]['rows'][firstOpen]['points'] = chosenPlayersTable[curPage]['rows'][firstOpen]['points'] * 1.5;
+      }
+
       activeSalaryRemaining = activeSalaryRemaining - thisSal;
 
       this.setState({ activeSalaryRemaining });
@@ -371,14 +383,17 @@ class App extends Component {
   handleRemovePlayerLineup = (inputPlayer) => {
     const curPage = this.state.activePlayersTable;
     const chosenPlayersTable = this.state.chosenPlayersTable;
+    const isTheCaptain = inputPlayer.isCaptain;
+
     for (let i=0; i < chosenPlayersTable[curPage].rows.length; i++) {
       if (chosenPlayersTable[curPage]['rows'][i]['name'] === inputPlayer['name']) {
         chosenPlayersTable[curPage]['rows'][i] = JSON.parse(JSON.stringify(blankPlayer));
         break;
       }
     }
-    chosenPlayersTable[curPage].capRemaining = chosenPlayersTable[curPage].capRemaining + inputPlayer['salary'];
-    let activeSalaryRemaining = this.state.activeSalaryRemaining + inputPlayer['salary'];
+    let thisSal = inputPlayer['salary'];
+    chosenPlayersTable[curPage].capRemaining = chosenPlayersTable[curPage].capRemaining + thisSal;
+    let activeSalaryRemaining = this.state.activeSalaryRemaining + thisSal;
     this.setState({ activeSalaryRemaining });
     this.setState({ chosenPlayersTable });
   }
@@ -397,7 +412,7 @@ class App extends Component {
     this.handleDisableAddNewLineup();
   }
 
-  // Handle Deleting 1 Lineuo
+  // Handle Deleting 1 Lineup
   handleDeleteOneLineup = async () => {
     let activePlayersTable = this.state.activePlayersTable;
     const curChosenTable = this.state.chosenPlayersTable;
@@ -485,7 +500,8 @@ class App extends Component {
           salary: '"' + thisPlayer['salary'] + '"', 
           team: '"' + thisPlayer['team'] + '"', 
           locked: '"' + thisPlayer['locked'] + '"', 
-          bannedFromLineup: '"' + thisPlayer['bannedFromLineup'] + '"'
+          bannedFromLineup: '"' + thisPlayer['bannedFromLineup'] + '"',
+          isCaptain: thisPlayer['isCaptain']
         })
       }
     }
