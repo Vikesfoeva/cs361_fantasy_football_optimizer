@@ -1,23 +1,16 @@
 import React, { Component } from 'react';
-import WeekSelector from './components/weekSelect';
-import { Icon, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import GameSelector from './components/gameSelect';
 import AllPlayersTable from './components/playersInGame';
-import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Unstable_Grid2';
-import { styled } from '@mui/material/styles';
 import ButtonGrid from './components/buttonGrid';
 import Button from '@mui/material/Button';
 import AutoModeIcon from '@mui/icons-material/AutoMode';
-import ClearIcon from '@mui/icons-material/Clear';
-import LockIcon from '@mui/icons-material/Lock';
-import LockOpenIcon from '@mui/icons-material/LockOpen';
 import BasicTabs from './components/tabbedLineUps';
-import HelpIcon from '@mui/icons-material/Help';
-import { act } from 'react-dom/test-utils';
-import $ from 'jquery';
-import 'bootstrap';
-import bootbox from 'bootbox';
+
+import KeyModal from './components/keyModal';
+import LearnMoreModal from './components/learnMoreModal';
+
 // When a lineup is deleted or all are reset the point get's misaligned
 
 // TOdo Show the weather where the games is
@@ -28,7 +21,6 @@ import bootbox from 'bootbox';
 
 // standardize button sizing, height, and spacing to make the UI look more uniform
 
-const baseUrl = window.location.href;
 const blankPlayer = {
   name: "", 
   points: "", 
@@ -92,7 +84,6 @@ class App extends Component {
   }
 
   render() { 
-
     return (
       <React.Fragment>
         <React.Fragment>
@@ -106,13 +97,15 @@ class App extends Component {
               updateGameSelection={this.handleUpdateGame}
                />
             </Grid>
-            <Grid xs={2}>
-              <Button variant='contained' color='success' endIcon={<HelpIcon />} onClick={this.handleLearnMore}>Learn More</Button>
+            <Grid xs={1.5}>
+              <LearnMoreModal />
             </Grid>
-            <Grid xs={2}>
+            <Grid xs={1.5}>
               <Button variant="contained" color='success' endIcon={<AutoModeIcon />} onClick={this.handleOptimizationAlgorithim}>Generate Line Ups</Button>
             </Grid>
-            <Grid xs={1}></Grid>
+            <Grid xs={1.5}>
+              <KeyModal />
+            </Grid>
             <Grid xs={2.5}>
               <Typography variant='h6' align='left'>
                 {"Salary Remaining $" + String(this.state.activeSalaryRemaining.toLocaleString())} 
@@ -138,30 +131,7 @@ class App extends Component {
                 banFromLineup = {this.handleLineUpBan}
               />
             </Grid>
-            {/* <Grid xs={1}>
-              <Grid container spacing={2}>
-                <Grid xs={5}>
-                  <ClearIcon />
-                </Grid>
-                <Grid xs={5}>
-                  <Typography>Remove</Typography>
-                </Grid>
-  
-                <Grid xs={5}>
-                  <LockIcon />
-                </Grid>
-                <Grid xs={5}>
-                  <Typography>Locked</Typography>
-                </Grid>
-  
-                <Grid xs={5}>
-                  <LockOpenIcon />
-                </Grid>
-                <Grid xs={5}>
-                  <Typography>Unlocked</Typography>
-                </Grid>
-              </Grid>           
-            </Grid> */}
+
             <Grid xs={5.5}>
               <BasicTabs 
                 chosenPlayersTable={this.state.chosenPlayersTable}
@@ -218,17 +188,7 @@ class App extends Component {
     playersTable.rows = newRows;
     this.setState({ playersTable });
   };
-
-  // Learn more button
-   handleLearnMore = () => {
-    alert('This website allows a user to optimize their fantasy football line ups by aggregating ' + 
-    'data, helping to run optimizations, and letting them visualize different outcomes.\n\n' + 
-    'The user can select which week of games they want to choose from, which game that week ' + 
-    'and then use the optimization, and visualization tools on the right to help them arrive at the' + 
-    'right decisions.\n\n' + 
-    'Users will be able be able to flexibly, change, undo, and export their lineups.');
-  };
-
+  
   // Handle Gather Players
   handleGatherAllPlayers = (totalContests) => {
     const playersBank = {}
@@ -514,7 +474,6 @@ class App extends Component {
 
   // Handle Undo 1 Most Recent Delete
   handleUndoDelete = async () => {
-    bootbox.alert("Your message here…");
     const restoredTable = this.state.justDeleted;
     if (restoredTable === null) {
       window.alert('Nothing to restore, only the single most recent deletion is stored.');

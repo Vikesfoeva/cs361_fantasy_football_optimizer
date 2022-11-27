@@ -134,15 +134,15 @@ class AllPlayersTable extends Component {
   // Handle Banning or Unbanning a player into the Lineup
   handleBanningIcon = (row) => {
     return(
-      <IconButton sx={{ "&:hover": { color: "red" }}}>
-        <BlockIcon onClick={() => this.props.banFromLineup(row)} />
+      <IconButton sx={{ "&:hover": { color: "green" }}}>
+        <RadioButtonUncheckedIcon onClick={() => this.props.banFromLineup(row)} />
       </IconButton>
     )
   }
   handleUnBanningIcon = (row) => {
     return(
       <IconButton sx={{ "&:hover": { color: "red" }}}>
-        <RadioButtonUncheckedIcon onClick={() => this.props.banFromLineup(row)} />
+        <BlockIcon onClick={() => this.props.banFromLineup(row)} />
       </IconButton>
     )
   }
