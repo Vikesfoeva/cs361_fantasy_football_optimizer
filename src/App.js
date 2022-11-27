@@ -18,14 +18,9 @@ import { act } from 'react-dom/test-utils';
 import $ from 'jquery';
 import 'bootstrap';
 import bootbox from 'bootbox';
-import Chip from '@mui/material/Chip';
-import Stack from '@mui/material/Stack';
-
 // When a lineup is deleted or all are reset the point get's misaligned
 
 // TOdo Show the weather where the games is
-
-// Make algorithim consume the locking
 
 // Improve the key legend for telling a user what does what
 
@@ -387,8 +382,28 @@ class App extends Component {
     this.setState({ playersTable })
   }
 
+  // Check How Many Players Locked
+  handleIsMaxPlayersLocked = () => {
+    let count = 0;
+    for (let i=0; i < this.state.playersTable.rows.length; i++) {
+      const thisPlayer = this.state.playersTable.rows[i];
+      if (thisPlayer.locked) {
+        count++;
+      }
+
+      if (count === 5) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Handle locking a player into an optimized lineup
   handleLockingPlayer = (inputPlayer) => {
+    if (this.handleIsMaxPlayersLocked()) {
+      window.alert("You've already locked 5 players, you can't lock any more.  You are unable to lock in a captain.")
+      return;
+    }
     const playersTable = this.handleLockingLogic(inputPlayer, true);
     this.setState({ playersTable })
   }
@@ -590,13 +605,24 @@ class App extends Component {
       availCaptains.push(thisCaptain);
     };
 
+    const initRoster = [];
+    for (let i=0; i < this.state.playersTable.rows.length; i++) {
+      const thisPlayer = this.state.playersTable.rows[i];
+      if (thisPlayer.locked) {
+        initRoster.push(thisPlayer);
+      }
+    }
+
     const rosterOptions = [{rows:[], projection: 0}];
     for (let i=0; i < availCaptains.length; i++) {
       const thisCap = availCaptains[i];
+      const copyRoster = JSON.parse(JSON.stringify(initRoster));
+      copyRoster.push(thisCap);
       if (thisCap.bannedFromLineup) {
         continue;
       }
-      knapSack(salaryCap - thisCap.salary, availPlayers, availPlayers.length, [thisCap], thisCap, thisCap.points, rosterOptions)
+
+      knapSack(salaryCap - thisCap.salary, availPlayers, availPlayers.length, copyRoster, thisCap, thisCap.points, rosterOptions)
     }
     
     const chosenPlayersTable = this.state.chosenPlayersTable;
