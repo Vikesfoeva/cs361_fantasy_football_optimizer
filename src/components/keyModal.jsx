@@ -39,6 +39,7 @@ class KeyModal extends Component {
             <div>
                 <Button onClick={() => this.setState({open: true})}
                     variant='contained'
+                    size="small"
                     color='success'
                     endIcon={<KeyIcon />}
                 >

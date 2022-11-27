@@ -7,15 +7,11 @@ import ButtonGrid from './components/buttonGrid';
 import Button from '@mui/material/Button';
 import AutoModeIcon from '@mui/icons-material/AutoMode';
 import BasicTabs from './components/tabbedLineUps';
-
+import LoadingButton from '@mui/lab/LoadingButton';
 import KeyModal from './components/keyModal';
 import LearnMoreModal from './components/learnMoreModal';
 
-// When a lineup is deleted or all are reset the point get's misaligned
-
 // TOdo Show the weather where the games is
-
-// standardize button sizing, height, and spacing to make the UI look more uniform
 
 const blankPlayer = {
   name: "", 
@@ -54,6 +50,7 @@ class App extends Component {
 
   state = { 
     games: [],
+    allGamesWeather: {},
     selectedGame: 0,
     playersBank: {},
     playersTable: {
@@ -67,13 +64,15 @@ class App extends Component {
     activeSalaryRemaining: 50000,
     activeProjectedPoints: 0,
     justDeleted: null,
-    addLineUpEnabled: false
+    addLineUpEnabled: false,
+    lineUpOptimizerLoading: false
   } 
   constructor() {
     super();
   }
 
   async componentDidMount() {
+    this.handleFetchWeather();
     const fetchContestResponse = await this.handleFetchContests();
     this.handleGatherAllPlayers(fetchContestResponse);
     await this.promisedSetState({ games: fetchContestResponse.games})
@@ -86,29 +85,38 @@ class App extends Component {
           <Typography variant='h2'>Fantasy Football Roster Optimization Tool</Typography>
           
           {/* Information Grid - Game Picker, Help, Optimizer */}
-          <Grid container spacing={2}>
-            <Grid xs={2}>
+          <Grid container spacing={1}>
+            <Grid xs={1.5}>
               <GameSelector 
-              gamesAvail={this.state.games}
-              updateGameSelection={this.handleUpdateGame}
+                gamesAvail={this.state.games}
+                updateGameSelection={this.handleUpdateGame}
                />
             </Grid>
             <Grid xs={1.5}>
               <LearnMoreModal />
             </Grid>
             <Grid xs={1.5}>
-              <Button variant="contained" color='success' endIcon={<AutoModeIcon />} onClick={this.handleOptimizationAlgorithim}>Generate Line Ups</Button>
+              <LoadingButton 
+                variant="contained" 
+                size="small" 
+                color='success' 
+                endIcon={<AutoModeIcon />} 
+                onClick={this.handleOptimizationAlgorithim}
+                loading={this.state.lineUpOptimizerLoading}
+                loadingIndicator="Loading…">
+                  Generate Line Ups
+                </LoadingButton>
             </Grid>
             <Grid xs={1.5}>
               <KeyModal />
             </Grid>
-            <Grid xs={2.5}>
-              <Typography variant='h6' align='left'>
-                {"Salary Remaining $" + String(this.state.activeSalaryRemaining.toLocaleString())} 
+            <Grid xs={1.5}>
+              <Typography variant='subtitle1' align='left'>
+                {"Salary Remaining $" + String(this.state.activeSalaryRemaining)} 
               </Typography>
             </Grid>
-            <Grid xs={2.5}>
-              <Typography variant='h6' align='left'>
+            <Grid xs={1.5}>
+              <Typography variant='subtitle1' align='left'>
                 {"Projected Points: " + String(this.state.activeProjectedPoints)} 
               </Typography>
             </Grid>
@@ -118,10 +126,11 @@ class App extends Component {
           <Grid container spacing={2}>
             <Grid xs={6}>
               <AllPlayersTable 
-                playersTable={this.state.playersTable}
-                changeRowsPerPage={this.handleRowsPerPage}
-                changePage={this.handlePageChange}
-                addPlayerToLineup={this.handleAddPlayerToLineup}
+                playersTable = {this.state.playersTable}
+                weather = {this.state.allGamesWeather}
+                changeRowsPerPage = {this.handleRowsPerPage}
+                changePage = {this.handlePageChange}
+                addPlayerToLineup = {this.handleAddPlayerToLineup}
                 lockInPlayer = {this.handleLockingPlayer}
                 unlockPlayer = {this.handleUnlockingPlayer}
                 banFromLineup = {this.handleLineUpBan}
@@ -159,6 +168,14 @@ class App extends Component {
     // await this.promisedSetState({ games: outGames})
     return outGames;
   }; 
+
+  // On Load, Fetch All Weather
+  handleFetchWeather = async () => {
+    const url = window.location.href + "api/weather";
+    const allGamesWeather = await fetch(url).then(res => res.json());
+    console.log(allGamesWeather);
+    this.setState({ allGamesWeather })
+  }
 
   // Set the proper state of add new page button
   handleDisableAddNewLineup = async () => {
@@ -547,7 +564,12 @@ class App extends Component {
     return { name, position, team, points, salary };
   }
 
-  handleOptimizationAlgorithim = () => {
+  handleOptimizationAlgorithim = async () => {
+    if (Object.keys(this.state.playersBank).length === 0) {
+      console.log('No Game Picked');
+      return;
+    }
+    await this.promisedSetState({ lineUpOptimizerLoading: true });
     const availPlayers = JSON.parse(JSON.stringify(this.state.playersTable.rows));
     const availCaptains = [];
 
@@ -595,7 +617,7 @@ class App extends Component {
     this.setState({ activeProjectedPoints });
     this.setState({ activeSalaryRemaining });
     this.setState({ chosenPlayersTable });
-
+    await this.promisedSetState({ lineUpOptimizerLoading: false });
   };
 };
 
