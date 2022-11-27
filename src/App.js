@@ -4,14 +4,11 @@ import GameSelector from './components/gameSelect';
 import AllPlayersTable from './components/playersInGame';
 import Grid from '@mui/material/Unstable_Grid2';
 import ButtonGrid from './components/buttonGrid';
-import Button from '@mui/material/Button';
 import AutoModeIcon from '@mui/icons-material/AutoMode';
 import BasicTabs from './components/tabbedLineUps';
 import LoadingButton from '@mui/lab/LoadingButton';
 import KeyModal from './components/keyModal';
 import LearnMoreModal from './components/learnMoreModal';
-
-// TOdo Show the weather where the games is
 
 const blankPlayer = {
   name: "", 
@@ -65,11 +62,10 @@ class App extends Component {
     activeProjectedPoints: 0,
     justDeleted: null,
     addLineUpEnabled: false,
-    lineUpOptimizerLoading: false
+    lineUpOptimizerLoading: false,
+    weatherDesc: '',
+    temperature: ''
   } 
-  constructor() {
-    super();
-  }
 
   async componentDidMount() {
     this.handleFetchWeather();
@@ -96,6 +92,9 @@ class App extends Component {
               <LearnMoreModal />
             </Grid>
             <Grid xs={1.5}>
+              <KeyModal />
+            </Grid>
+            <Grid xs={1.5}>
               <LoadingButton 
                 variant="contained" 
                 size="small" 
@@ -104,11 +103,12 @@ class App extends Component {
                 onClick={this.handleOptimizationAlgorithim}
                 loading={this.state.lineUpOptimizerLoading}
                 loadingIndicator="Loading…">
-                  Generate Line Ups
+                  Optimize
                 </LoadingButton>
             </Grid>
             <Grid xs={1.5}>
-              <KeyModal />
+              <Typography>{this.state.weatherDesc}</Typography>
+              <Typography>{this.state.temperature}</Typography>
             </Grid>
             <Grid xs={1.5}>
               <Typography variant='subtitle1' align='left'>
@@ -173,7 +173,6 @@ class App extends Component {
   handleFetchWeather = async () => {
     const url = window.location.href + "api/weather";
     const allGamesWeather = await fetch(url).then(res => res.json());
-    console.log(allGamesWeather);
     this.setState({ allGamesWeather })
   }
 
@@ -190,8 +189,22 @@ class App extends Component {
   // Receive the ID from the game slector dropdown and update State
   handleUpdateGame = (inputChosenId) => {
     const selectedGame = inputChosenId;
+    let thisGame = '';
+    for (let i=0; i < this.state.games.length; i++) {
+      if(this.state.games[i].id === inputChosenId) {
+        thisGame = this.state.games[i];
+      }
+    }
+
+    thisGame = thisGame.friendly.split(' ')[2];
+
+    const weatherDesc = this.state.allGamesWeather[thisGame].description;
+    const temperature = this.state.allGamesWeather[thisGame].temperature.toFixed(0) + " F";
+
     this.handleFetchPlayers(inputChosenId);
     this.setState({ selectedGame });
+    this.setState({ weatherDesc });
+    this.setState({ temperature });
   }
 
   // Based on the newly chosen game, update the players
@@ -283,7 +296,8 @@ class App extends Component {
     for (let i=0; i < pageKeys.length; i++) {
       const thisPage = pageKeys[i];    
       if (i === inputKey) {
-        this.state.activePlayersTable = inputKey;
+        const activePlayersTable = inputKey;
+        this.setState({ activePlayersTable })
         chosenPlayersTable[thisPage].hidden = false;
       } else {
         chosenPlayersTable[thisPage].hidden = true;
@@ -403,7 +417,6 @@ class App extends Component {
   handleRemovePlayerLineup = (inputPlayer) => {
     const curPage = this.state.activePlayersTable;
     const chosenPlayersTable = this.state.chosenPlayersTable;
-    const isTheCaptain = inputPlayer.isCaptain;
 
     for (let i=0; i < chosenPlayersTable[curPage].rows.length; i++) {
       if (chosenPlayersTable[curPage]['rows'][i]['name'] === inputPlayer['name']) {
@@ -501,7 +514,6 @@ class App extends Component {
       }
     }
 
-    const justDeleted = null;
     const activeSalaryRemaining = restoredTable[activePlayersTable].capRemaining;
     this.setState({ activeSalaryRemaining })
     this.setState({ activePlayersTable });

@@ -36,14 +36,14 @@ class KeyModal extends Component {
           };
 
         return (
-            <div>
+            <React.Fragment>
                 <Button onClick={() => this.setState({open: true})}
                     variant='contained'
                     size="small"
-                    color='success'
+                    color='primary'
                     endIcon={<KeyIcon />}
                 >
-                    Actions Legend
+                    Legend
                 </Button>
                 <Modal
                 aria-labelledby="transition-modal-title"
@@ -59,7 +59,7 @@ class KeyModal extends Component {
                     <Fade in={this.state.open}>
                         <Box sx={modalStyle}>
                             <Typography id="transition-modal-title" variant="h6" component="h2" align='center'>
-                                Actions Legend
+                                Legend
                             </Typography>
                             <Stack direction="column" spacing={1}>
                                 <Chip icon={<AddIcon />} 
@@ -85,7 +85,7 @@ class KeyModal extends Component {
                         </Box>
                     </Fade>
                 </Modal>
-            </div>
+            </React.Fragment>
           );
     }
 }
