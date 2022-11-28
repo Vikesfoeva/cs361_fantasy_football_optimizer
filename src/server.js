@@ -2,14 +2,11 @@ const bodyParser = require('body-parser')
 const path = require('path');
 const express = require('express');
 const axios = require('axios');
-
-// Node Requests
-// https://www.twilio.com/blog/2017/08/http-requests-in-node-js.html
+const { fabClasses } = require('@mui/material');
 
 // Partners Microservice Documentation
 // https://github.com/huangpin-osu/brandon-micro/blob/master/readme.md
 
-const request = require('request');
 const app = express();
 app.use(express.static(path.join(__dirname,"../build")));
 
@@ -35,55 +32,24 @@ const teamsArr = [
   'JAX', 'CLE', 'LV', 'KC', 'LR', 'SEA', 'CIN', 'DET'
 ];
 
+// Zip Codes of NFL Stadiums November 2022
+const zipCodesArr = [
+  37213, 10021, 15202, 28202, 21203, 33607, 46201, 56760, 
+  63102, 75203, 30303, 10001, 28037, 33102, 19092, 60602, 
+  58647, 20575, 54301, 92103, 70112, 77002, 14202, 94102, 
+  32099, 44114, 94502, 66027, 63101, 98102, 45202, 48205
+];
+
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
-app.get('/api/contests', async (req, res) => {
-  const contestsURL = 'https://www.draftkings.com/lobby/getcontests?sport=NFL';
-  request(contestsURL, { json: true }, async (err, response, body) => {
-    if (err) { return console.log(err); }
-    const output = {};
-    output['games'] = parseContests(response.body.Contests);
-    const players = {};
-    let counter = 0;
-    for (let i=0; i < output.games.length; i++) {
-      const gameID = output.games[i].id;
-
-      // Calls the microservice
-      const microServiceURL = `https://gk361ms.deta.dev/gameid/${gameID}`;
-      axios.get(microServiceURL)
-      .then(response => {
-
-        players[String(gameID)] = parseMicroServiceResponse(response.data);
-        counter = counter + 1;
-
-        if (counter === output.games.length) {
-          output['players'] = players;
-          res.send(JSON.stringify(output));
-        }
-
-      })
-      .catch(error => {console.log(error)})
-    }
-  });
 });
 
 // https://openweathermap.org/current#zip
 app.get('/api/weather', async function(req, res) {
   const apiKey = '6581904b2f52f9308db23994647241cf';
-  const zipCodesArr = [
-    37213, 10021, 15202, 28202, 21203, 33607, 46201, 56760, 
-    63102, 75203, 30303, 10001, 28037, 33102, 19092, 60602, 
-    58647, 20575, 54301, 92103, 70112, 77002, 14202, 94102, 
-    32099, 44114, 94502, 66027, 63101, 98102, 45202, 48205
-  ];
-
   const weatherRes = {};
   for (let i=0; i < zipCodesArr.length; i++) {
-    const thisZip = zipCodesArr[i];
-    const weatherURL = `https://api.openweathermap.org/data/2.5/weather?zip=${thisZip}&appid=${apiKey}`
-    await axios.get(weatherURL)
+    await axios.get(`https://api.openweathermap.org/data/2.5/weather?zip=${zipCodesArr[i]}&appid=${apiKey}`)
     .then(response => {
       weatherRes[teamsArr[i]] = {
         description: response.data.weather[0].description,
@@ -95,6 +61,29 @@ app.get('/api/weather', async function(req, res) {
   res.send(JSON.stringify(weatherRes));
 });
 
+app.get('/api/contests', async (req, res) => {
+  await axios.get('https://www.draftkings.com/lobby/getcontests?sport=NFL')
+  .then(async (response) => {
+    const output = {};
+    output['games'] = parseContests(response.data.Contests);
+    output['players'] = await callPartnersMicroservice(output);
+    res.send(JSON.stringify(output));
+  }).catch(error => {console.log(error)})
+});
+
+async function callPartnersMicroservice(gamesObj) {
+  const players = {};
+  for (let i=0; i < gamesObj.games.length; i++) {
+    const gameID = gamesObj.games[i].id;
+    // Calls the microservice
+    await axios.get(`https://gk361ms.deta.dev/gameid/${gameID}`)
+    .then(response => {
+      players[String(gameID)] = parseMicroServiceResponse(response.data);
+    }).catch(error => {console.log(error)})
+  }
+  return players;
+}
+
 function parseMicroServiceResponse(allPlayersObject) {
   // Creates a condensed more manageable data object to send back to the client
   const res = {};
@@ -104,37 +93,35 @@ function parseMicroServiceResponse(allPlayersObject) {
     if (thisKey in res && res[thisKey]['salary'] > thisPlayer['salary']) {
       res[thisKey]['salary'] = thisPlayer['salary']
     } else {
-      let thisPoints = 0;
-      let thisRank = '';
-      const playerVal1 = thisPlayer['draftStatAttributes'][0]['value'];
-      const playerVal2 = thisPlayer['draftStatAttributes'][1]['value'];
-      const regex = new RegExp("[a-zA-Z]");
-      if (regex.test(playerVal1)) {
-        thisPoints = 0;
-        thisRank = playerVal1;
-      } else {
-        thisPoints = playerVal1;
-        thisRank = playerVal2;
-      }
-
-      res[thisKey] = {
-        firstName: thisPlayer['firstName'],
-        lastName: thisPlayer['lastName'],
-        displayName: thisPlayer['displayName'],
-        salary: thisPlayer['salary'],
-        projectedPoints: thisPoints,
-        opponentRank: thisRank,
-        quality: thisPlayer['draftStatAttributes'][1]['quality'],
-        teamAbbreviation: thisPlayer['teamAbbreviation'],
-        position: thisPlayer['position'],
-        image: thisPlayer['playerImage160']
-      }
+      res[thisKey] = buildPlayerObjectForClient(thisPlayer)
     }
   };
   return res;
 };
 
-// This endpoint returns the unlocked contests for the current week
+function buildPlayerObjectForClient(thisPlayer) {
+  let thisPoints = thisPlayer['draftStatAttributes'][0]['value'];
+  let thisRank = thisPlayer['draftStatAttributes'][1]['value'];
+  const regex = new RegExp("[a-zA-Z]");
+  // Test if DK flipped the values for a non-pointing player
+  if (regex.test(thisPoints)) {
+    thisPoints = 0;
+    thisRank = thisPoints;
+  } 
+  return {
+    firstName: thisPlayer['firstName'],
+    lastName: thisPlayer['lastName'],
+    displayName: thisPlayer['displayName'],
+    salary: thisPlayer['salary'],
+    projectedPoints: thisPoints,
+    opponentRank: thisRank,
+    quality: thisPlayer['draftStatAttributes'][1]['quality'],
+    teamAbbreviation: thisPlayer['teamAbbreviation'],
+    position: thisPlayer['position']
+  }
+}
+
+// This function returns the unlocked contests for the current week
 function parseContests(inputContests) {
   const outputCons = [];
   const uniqueCons = [];
@@ -144,36 +131,39 @@ function parseContests(inputContests) {
     if (thisCon['gameType'] !== 'Showdown Captain Mode') {
       continue;
     }
-    let friendly = thisCon['n'].split("(");
-    if (friendly.length > 2) {
-      // Parse out contest names we do not want
-      continue;
-    }
-    friendly = friendly[1]
-    friendly = friendly.split(")")[0];
-    if (uniqueCons.includes(friendly)) {
-      continue;
-    }
 
-    // Check that our game contains a team name
-    let teamFound = false;
-    for (let j=0; j < teamsArr.length; j++) {
-      if (friendly.includes(teamsArr[j])) {
-        teamFound = true;
-        break;
-      }
-    }
-
-    if (!teamFound) {
+    // Draftking games we do not want tend to have multiple () sets
+    const friendlyPart1 = thisCon['n'].split("(");
+    const friendlyPart2 = friendlyPart1[1].split(")")[0];
+    if (!beginParsingForFriendlyName(friendlyPart1, uniqueCons) || !checkFriendlyHasTeamName(friendlyPart2)) {
       continue;
     }
-    uniqueCons.push(friendly)
+ 
+    uniqueCons.push(friendlyPart2)
     outputCons.push({
       id: thisCon['id'],
       fullName: thisCon['n'],
       date: thisCon['sdstring'],
-      friendly: friendly
+      friendly: friendlyPart2
     });
   }
   return outputCons;
+}
+
+function beginParsingForFriendlyName(thisFriendly, uniqueCons) {
+  // Check2 assumes the name we want is at the spot we want, check if we have it
+  const check2 = thisFriendly[1].split(")")[0]
+  if (thisFriendly.length > 2 || uniqueCons.includes(check2)) {
+    return false;
+  }
+  return true;
+}
+
+function checkFriendlyHasTeamName(thisFriendly) {
+  for (let j=0; j < teamsArr.length; j++) {
+    if (thisFriendly.includes(teamsArr[j])) {
+      return true;
+    }
+  }
+  return false;
 }

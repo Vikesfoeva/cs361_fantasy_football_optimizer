@@ -61,6 +61,7 @@ class AllPlayersTable extends Component {
                       {columns.map((column) => {
                         const value = row[column.id];
                         if (column.id === 'actions') {
+                          // Idea source on the hover over action for icons in MUI
                           // https://smartdevpreneur.com/guide-to-material-ui-iconbutton-onclick-and-hover/#Material-UI_IconButton_ToolTip_on_Hover
                           
                           let lockingIcon;
@@ -115,7 +116,7 @@ class AllPlayersTable extends Component {
       </Paper>
     );
   }
-  // Handle locking or unlocking the player into the opimization
+
   handleLockingIcon = (row) => {
     return(
       <IconButton sx={{ "&:hover": { color: "blue" }}}>
@@ -131,7 +132,6 @@ class AllPlayersTable extends Component {
     )
   }
 
-  // Handle Banning or Unbanning a player into the Lineup
   handleBanningIcon = (row) => {
     return(
       <IconButton sx={{ "&:hover": { color: "green" }}}>

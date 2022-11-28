@@ -158,6 +158,7 @@ class App extends Component {
       </React.Fragment>
     );
   }
+  // Idea source on asyncronous state setting
   // https://stackoverflow.com/questions/51968714/is-it-correct-to-use-await-setstate
   promisedSetState = (newState) => new Promise(resolve => this.setState( newState, resolve ));
   
@@ -165,7 +166,6 @@ class App extends Component {
   handleFetchContests = async () => {
     const url = window.location.href + "api/Contests";
     const outGames = await fetch(url).then(res => res.json());
-    // await this.promisedSetState({ games: outGames})
     return outGames;
   }; 
 
@@ -186,7 +186,7 @@ class App extends Component {
     this.setState({ addLineUpEnabled });
   }
 
-  // Receive the ID from the game slector dropdown and update State
+  // Receive the ID from the game selector dropdown and update State
   handleUpdateGame = (inputChosenId) => {
     const selectedGame = inputChosenId;
     let thisGame = '';
@@ -339,9 +339,9 @@ class App extends Component {
       chosenPlayersTable[curPage]['rows'][firstOpen] = JSON.parse(JSON.stringify(inputPlayer));
       chosenPlayersTable[curPage]['rows'][firstOpen]['isCaptain'] = isTheCaptain;
       chosenPlayersTable[curPage]['capRemaining'] = activeSalaryRemaining - thisSal;
+      chosenPlayersTable[curPage]['rows'][firstOpen]['salary'] = thisSal;
 
       if (isTheCaptain) {
-        chosenPlayersTable[curPage]['rows'][firstOpen]['salary'] = chosenPlayersTable[curPage]['rows'][firstOpen]['salary'] * 1.5;
         chosenPlayersTable[curPage]['rows'][firstOpen]['points'] = chosenPlayersTable[curPage]['rows'][firstOpen]['points'] * 1.5;
       }
 
@@ -523,6 +523,7 @@ class App extends Component {
   }
 
   // Handle Download CSV File
+  // Idea source on how to handle this problem
   // https://www.geeksforgeeks.org/how-to-create-and-download-csv-file-in-javascript/
   handleDownloadCSV = () => {
     const data = [];
@@ -594,6 +595,7 @@ class App extends Component {
       availCaptains.push(thisCaptain);
     };
 
+    // Capture locked players
     const initRoster = [];
     for (let i=0; i < this.state.playersTable.rows.length; i++) {
       const thisPlayer = this.state.playersTable.rows[i];
@@ -602,6 +604,7 @@ class App extends Component {
       }
     }
 
+    // Setup array to capture and begin iteration
     const rosterOptions = [{rows:[], projection: 0}];
     for (let i=0; i < availCaptains.length; i++) {
       const thisCap = availCaptains[i];
@@ -633,9 +636,11 @@ class App extends Component {
   };
 };
 
+// Source that spurred optimization algorithim approach
+// The problem is really just the 0-1 knapsack problem
 // https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/
-function max(a, b){
-  return (a > b) ? a : b;
+function max(total1, total2){
+  return (total1 > total2) ? total1 : total2;
 };
 
 function knapSack(salRemain, availPlayers, ptr, thisRoster, thisCap, total, rosterOptions){
@@ -657,6 +662,9 @@ function knapSack(salRemain, availPlayers, ptr, thisRoster, thisCap, total, rost
   const thisPlayer = availPlayers[ptr-1]
   const thisSal = thisPlayer.salary;
   const thisPoint = parseFloat(thisPlayer.points);
+
+  // Regex exists here to test the data since
+  // the draftkings api seems to change format between different contests calls some times
   const regex = new RegExp("[a-zA-Z]");
 
   if (thisSal > salRemain || thisSal < 1000 || 
