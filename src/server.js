@@ -48,10 +48,15 @@ app.get('/', function(req, res) {
 app.get('/api/weather', async function(req, res) {
   const apiKey = '6581904b2f52f9308db23994647241cf';
   const weatherRes = {};
-  for (let i=0; i < zipCodesArr.length; i++) {
-    await axios.get(`https://api.openweathermap.org/data/2.5/weather?zip=${zipCodesArr[i]}&appid=${apiKey}`)
+  const games = await getContests();
+
+  for (let i=0; i < games.games.length; i++) {
+    const thisTeam = games.games[i].friendly.split(' ')[2];
+    const thisZip = zipCodesArr[teamsArr.indexOf(thisTeam)];
+    const thisURL = `https://api.openweathermap.org/data/2.5/weather?zip=${thisZip}&appid=${apiKey}`;
+    await axios.get(thisURL)
     .then(response => {
-      weatherRes[teamsArr[i]] = {
+      weatherRes[thisTeam] = {
         description: response.data.weather[0].description,
         temperature: (response.data.main.temp - 273.15) * 9 / 5 + 32
       };
@@ -61,14 +66,20 @@ app.get('/api/weather', async function(req, res) {
   res.send(JSON.stringify(weatherRes));
 });
 
-app.get('/api/contests', async (req, res) => {
-  await axios.get('https://www.draftkings.com/lobby/getcontests?sport=NFL')
+async function getContests() {
+  const output = await axios.get('https://www.draftkings.com/lobby/getcontests?sport=NFL')
   .then(async (response) => {
-    const output = {};
-    output['games'] = parseContests(response.data.Contests);
-    output['players'] = await callPartnersMicroservice(output);
-    res.send(JSON.stringify(output));
+    const out = {};
+    out['games'] = parseContests(response.data.Contests);
+    return out;
   }).catch(error => {console.log(error)})
+  return output
+}
+
+app.get('/api/contests', async (req, res) => {
+  const output = await getContests();
+  output['players'] = await callPartnersMicroservice(output);
+  res.send(JSON.stringify(output));
 });
 
 async function callPartnersMicroservice(gamesObj) {
